@@ -103,6 +103,7 @@ def analyse_vcf( vcf_file, bed_file ):
             het_score = abs( 50 - mean_het*100)
             het_hom_score  = het_score + hom_score
 
+        # If no hets/homs to calculate ratios/scores, set values to -1000
         else:
             mean_het = -1000
             mean_hom = -1000
