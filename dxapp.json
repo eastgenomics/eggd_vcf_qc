@@ -1,7 +1,8 @@
 {
-  "name": "dnanexus_vcf_qc_v1.0.0",
-  "title": "dnanexus_vcf_qc_v1.0.0",
-  "summary": "dnanexus_vcf_qc",
+  "name": "eggd_vcf_qc_v1.0.0",
+  "title": "eggd_vcf_qc_v1.0.0",
+  "summary": "Simple QC of a vcf file. Includes deviation from expected allelic balance",
+  "tags":["NGS QC"],
   "properties": {
     "githubRelease": "v1.0.0"
   },
