@@ -14,7 +14,7 @@
       "help": "A VCF file containing variants to be evaluated",
       "class": "file",
       "optional": false,
-      "patterns": ["*.vcf"]
+      "patterns": ["*.vcf","*.vcf.gz"]
     },
     {
       "name": "bed_file",
