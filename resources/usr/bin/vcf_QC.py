@@ -138,3 +138,4 @@ if __name__ == "__main__":
 
     for vcf_file in args.vcf_files:
         analyse_vcf( vcf_file, args.bed_file )
+        
