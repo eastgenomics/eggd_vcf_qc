@@ -23,9 +23,6 @@ def analyse_vcf( vcf_file, bed_file ):
     """
 
     # Make temp on-target vcf
-    #target_bed = "/mnt/storage/refs/human_1kg/TruSightOne_plus/TSOnePlus.bed"
-    vcf_basename = os.path.basename(vcf_file)
-    vcf_runfolder = vcf_file.split("/vcfs")[0].split("/")[-1]
     temp_vcf = vcf_file + ".tmp"
     command = "bedtools intersect -header -a {vcf_file} -b {bed_file} -wa > {temp_vcf}".format(vcf_file=vcf_file, bed_file=bed_file, temp_vcf=temp_vcf)
 
@@ -99,18 +96,12 @@ def analyse_vcf( vcf_file, bed_file ):
             mean_het = sum( splits[ sample ][ 'HET'])*1.0/len( splits[ sample ][ 'HET'] )
             mean_hom = sum( splits[ sample ][ 'HOM'])*1.0/len( splits[ sample ][ 'HOM'] )
             het_hom_ratio = len( splits[ sample ][ 'HET'] )*1.0/len( splits[ sample ][ 'HOM'] )
-            hom_score = abs(100-mean_hom*100)
-            het_score = abs( 50 - mean_het*100)
-            het_hom_score  = het_score + hom_score
 
         # If no hets/homs to calculate ratios/scores, set values to -1000
         else:
             mean_het = -1000
             mean_hom = -1000
             het_hom_ratio = -1000
-            het_score = -1000
-            hom_score = -1000
-            het_hom_score = -1000
 
         if ( len(splits[ sample ][ 'X' ][ 'HOM']) == 0):
             X_het_hom_ratio = -1000
@@ -124,17 +115,12 @@ def analyse_vcf( vcf_file, bed_file ):
 
         mean_het = "{:.4f}".format( mean_het )
         mean_hom = "{:.4f}".format( mean_hom )
-
         het_hom_ratio = "{:.4f}".format( het_hom_ratio )
-        het_hom_score = "{:.4f}".format( het_hom_score )
-
         X_het_hom_ratio = "{:.4f}".format( X_het_hom_ratio )
 
-        print( "\t".join( [ vcf_runfolder, sample, mean_het, mean_hom, het_hom_ratio, str(het_score), str(hom_score), het_hom_score, X_het_hom_ratio, gender]))
+        print( "\t".join( [ sample, mean_het, mean_hom, het_hom_ratio, X_het_hom_ratio, gender]))
 
-    os.remove(temp_vcf)
-
-
+    
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='vcf_QC.py: simple QC of a vcf file ')
@@ -148,7 +134,7 @@ if __name__ == "__main__":
     if args.outfile:
         sys.stdout = open("{}".format( args.outfile), 'w')
 
-    print "\t".join([ "Runfolder", "Sample", "mean het ratio", "mean homo ratio", "het:homo ratio", "het-score", "hom-score", "het-homo score", "X homo:het ratio", "gender"])
+    print "\t".join([ "Sample", "mean het ratio", "mean homo ratio", "het:homo ratio", "X homo:het ratio", "gender"])
 
     for vcf_file in args.vcf_files:
         analyse_vcf( vcf_file, args.bed_file )

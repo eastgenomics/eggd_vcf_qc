@@ -1,13 +1,6 @@
 <!-- dx-header -->
 # dnanexus_vcf_QC (DNAnexus Platform App)
 
-dnanexus_vcf_QC
-
-This is the source code for an app that runs on the DNAnexus Platform.
-For more information about how to run or modify it, see
-https://documentation.dnanexus.com/.
-<!-- /dx-header -->
-
 ## What does this app do?
 This app runs a python script to perform simple vcf QC.
 

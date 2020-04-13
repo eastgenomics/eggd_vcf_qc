@@ -47,8 +47,8 @@
        "package_manager": "pip",
        "version": "0.12.0"},
       {"name": "bedtools",
-       "package_manager": "apt"
-     }
+       "package_manager": "apt",
+       "version": "2.26.0"}
      ],
     "interpreter": "bash",
     "release": "16.04",
