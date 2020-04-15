@@ -13,12 +13,10 @@ The app requires a VCF file (.vcf) containing variants to be evaluated and a bed
 ## What does this app output?
 The app outputs one file, where [outPrefix] is the vcf filename without extension:
 1. [outPrefix].vcf.QC is a tab delimited file containing:
+ - sample id
  - mean het ratio (mean AAF of het variants)
  - mean homo ratio (mean AAF of hom variants)
  - het:homo ratio (ratio of het to hom variants on autosomes)
- - s (mean deviation from 0.5 in het variants)
- - hom-score (mean deviation from 1.0 in hom variants)
- - het_homo_score (sum of het-score + hom-score)
  - X homo:het ratio (ratio of het to hom variants on chrX)
  - gender (inferred from X homo:het ratio)
 
