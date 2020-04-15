@@ -17,6 +17,14 @@
 
 main() {
 
+    # Install bedtools
+    cd /packages
+    tar -zxvf bedtools-2.26.0.tar.gz
+    cd bedtools2
+    make
+    cp bin/* /usr/bin/
+    cd ../..
+
     echo "Value of vcf_file: '$vcf_file'"
     echo "Value of bed_file: '$bed_file'"
 
@@ -24,7 +32,6 @@ main() {
     # inputs to the local file system using variable names for the filenames. To
     # recover the original filenames, you can use the output of "dx describe
     # "$variable" --name".
-
 
     dx download "$vcf_file" -o vcf_file
     dx download "$bed_file" -o bed_file
