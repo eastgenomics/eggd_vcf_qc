@@ -36,7 +36,8 @@ TODO
 
 def intersect_vcf_with_bed(vcf, bed) -> str:
     """
-    Intersect the vcf with the given bed file
+    Intersect the vcf with the given bed file, outputting the unique
+    variants present in vcf
 
     Parameters
     ----------
@@ -120,12 +121,6 @@ def get_het_hom_counts(vcf) -> dict:
 
         non_ref_aaf = round(non_ref_depth / informative_total_depth, 4)
 
-        print(
-            f"GT: {sample_fields['GT']}\tADs: {sample_fields['AD']}\t\t"
-            f"AD DP: {sum(sample_fields['AD'])}\tFMT_DP: {sample_fields['DP']}"
-            f"\tAAF: {non_ref_aaf}"
-        )
-
         if len(set(sample_fields['GT'])) == 1:
             # homozygous variant
             counts['hom'].append(non_ref_aaf)
@@ -138,6 +133,13 @@ def get_het_hom_counts(vcf) -> dict:
 
             if re.match(r'(chr)?x', record.chrom, re.IGNORECASE):
                 counts['x_het'].append(non_ref_aaf)
+
+        # handy print for the logs for sense checking
+        print(
+            f"GT: {sample_fields['GT']}\tADs: {sample_fields['AD']}\t\t"
+            f"AD DP: {sum(sample_fields['AD'])}\tFMT_DP: {sample_fields['DP']}"
+            f"\tAAF: {non_ref_aaf}"
+        )
 
     return sample, counts
 
@@ -177,6 +179,9 @@ def calculate_ratios(counts) -> dict:
     print(f"Total x het counts: {len(counts['x_het'])}")
     print(f"Total x hom counts: {len(counts['x_hom'])}\n")
 
+    for field, value in ratios.items():
+        print(f"{field}\t{value}")
+
     return ratios
 
 
@@ -188,12 +193,8 @@ def main(vcf_file, bed_file, outfile=None):
     sample, het_hom_counts = get_het_hom_counts(tmp_vcf)
     ratios = calculate_ratios(het_hom_counts)
 
-    for x, y in ratios.items():
-        print(x, "\t", y)
-
 
 if os.path.exists('/home/dnanexus'):
     dxpy.run()
-
-if __name__ == "__main__":
+else:
     main(vcf_file=sys.argv[1], bed_file=sys.argv[2])
