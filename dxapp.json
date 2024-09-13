@@ -1,11 +1,8 @@
 {
-  "name": "eggd_vcf_qc_v1.0.1",
-  "title": "eggd_vcf_qc_v1.0.1",
+  "name": "eggd_vcf_qc",
+  "title": "eggd_vcf_qc",
   "summary": "Simple QC of a vcf file. Includes deviation from expected allelic balance",
   "tags":["NGS QC"],
-  "properties": {
-    "githubRelease": "v1.0.1"
-  },
   "dxapi": "1.0.0",
   "inputSpec": [
     {
@@ -42,22 +39,14 @@
         "hours": 1
       }
     },
-    "execDepends": [
-      {"name": "pysam",
-       "package_manager": "pip",
-       "version": "0.12.0"}
-     ],
-    "interpreter": "bash",
-    "release": "16.04",
+    "interpreter": "python",
+    "release": "20.04",
     "distribution": "Ubuntu",
-    "file": "src/dnanexus_vcf_QC.sh"
+    "file": "src/eggd_vcf_qc.py"
   },
   "access": {
     "project": "CONTRIBUTE",
-    "allProjects": "VIEW",
-    "network": [
-      "*"
-    ]
+    "allProjects": "VIEW"
   },
   "regionalOptions": {
     "aws:eu-central-1": {
