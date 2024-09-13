@@ -14,26 +14,6 @@ import dxpy
 import pysam
 
 
-"""
-TODO
-- intersect vcf with bed and get unique variants
-- calculate het hom ratio
-- calculate hom het ratio
-
-- loop over records:
-  - loop over samples:
-    - skip samples with no AD or DP or GT
-    - get ref and alt (consider multi allelics here)
-    - consider indels not having ref or alt depths (app sets count and dp to 1)
-    - AAF calculated as alt_count*1.0/int(record.samples[sample]['DP'])
-    - if len GT == 1:
-        - add AAD as HOM
-    - else:
-        - add AAF as HET
-
-"""
-
-
 def intersect_vcf_with_bed(vcf, bed) -> str:
     """
     Intersect the vcf with the given bed file, outputting the unique
