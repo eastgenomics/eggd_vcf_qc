@@ -1,141 +1,198 @@
-#!/usr/bin/python2
-# 
-# 
-# 
-# 
-# Kim Brugger (21 Mar 2018), contact: kim@brugger.dk
-# Matt Garner (20191107)
-
-import sys
-import subprocess
+from glob import glob
 import os
-import argparse
+import re
+import subprocess
+import sys
+
+if os.path.exists('/home/dnanexus'):
+    # running in DNAnexus
+    subprocess.check_call([
+        'pip', 'install', "--no-index", "--no-deps"
+    ] + glob("packages/*"))
+
+import dxpy
 import pysam
 
-def analyse_vcf( vcf_file, bed_file ):
-    """ Does the QC of a vcf file
 
-    Args:
-      vcf_file(str): name of vcf file
+"""
+TODO
+- intersect vcf with bed and get unique variants
+- calculate het hom ratio
+- calculate hom het ratio
 
-    Returns:
-      None
+- loop over records:
+  - loop over samples:
+    - skip samples with no AD or DP or GT
+    - get ref and alt (consider multi allelics here)
+    - consider indels not having ref or alt depths (app sets count and dp to 1)
+    - AAF calculated as alt_count*1.0/int(record.samples[sample]['DP'])
+    - if len GT == 1:
+        - add AAD as HOM
+    - else:
+        - add AAF as HET
+
+"""
+
+
+def intersect_vcf_with_bed(vcf, bed) -> str:
     """
+    Intersect the vcf with the given bed file
 
-    # Make temp on-target vcf
-    temp_vcf = vcf_file + ".tmp"
-    command = "bedtools intersect -header -a {vcf_file} -b {bed_file} -wa > {temp_vcf}".format(vcf_file=vcf_file, bed_file=bed_file, temp_vcf=temp_vcf)
+    Parameters
+    ----------
+    vcf : str
+        vcf file to intersect with
+    bed : str
+        bed file to intersect against
 
-    subprocess.call(command, shell=True)
-    
-    vcf = pysam.VariantFile( temp_vcf )
-    samples = vcf.header.samples
+    Returns
+    -------
+    str
+        file name of intersected vcf
 
-    X_splits = {}
-    X_splits['HOMO'] = []
-    X_splits['HET' ] = []
+    Raises
+    ------
+    AssertionError
+        Raised when non zero exit code returned from bedtools intersect
+    """
+    tmp_vcf = f"{vcf}.tmp"
+    command = (
+        f"bedtools intersect -header -wa -u -a {vcf} -b {bed} > {vcf}.tmp"
+    )
 
-    Y_splits = {}
-    Y_splits['HOMO'] = []
-    Y_splits['HET' ] = []
-  
-    homo_splits = []
-    het_splits  = []
+    process = subprocess.run(command, shell=True, capture_output=True)
 
+    assert process.returncode == 0, (
+        f"Error in calling bedtools intersect: {process.stderr.decode()}"
+    )
 
-    splits = {}
-    for sample in samples:
-        splits[ sample ] = {}
-        splits[ sample ][ 'HET'] = []
-        splits[ sample ][ 'HOM'] = []
-        splits[ sample ][ 'X' ]  = {}
-        splits[ sample ][ 'X' ][ 'HET'] = []
-        splits[ sample ][ 'X' ][ 'HOM'] = []
-
-    for record in vcf.fetch():
-        for sample in samples:
-
-            if ( 'AD' not in record.samples[sample] or 
-                 'DP' not in record.samples[sample] ):
-                continue
-
-            gts = record.samples[sample]['GT']
-            counts = record.samples[sample]['AD']
-            if not gts:
-                continue
-            if not counts:
-                continue
-
-            try:
-                ref_count, alt_count = counts[ gts[0]], counts[ gts[1]]
-            except:
-                continue
-            
-            # Indels sometimes have no reference and alt depths (for some reason!)
-            if ( record.samples[sample]['DP'] == 0 and ref_count == 0 and alt_count == 0):
-                alt_count = 1
-                record.samples[sample]['DP'] = 1
-
-            AAF = alt_count*1.0/int(record.samples[sample]['DP'])
-
-            if len(set(record.samples[sample]['GT'])) == 1:
-                splits[ sample ][ 'HOM' ].append( AAF )
-
-                if record.chrom == 'X':
-                    splits[ sample ][ 'X' ][ 'HOM'].append( AAF )
-            else:
-                splits[ sample ][ 'HET' ].append( AAF )
-
-                if record.chrom == 'X':
-                    splits[ sample ][ 'X' ][ 'HET'].append( AAF )
+    return tmp_vcf
 
 
-    for sample in samples:
+def get_het_hom_counts(vcf) -> dict:
+    """
+    Get the AD counts for het and hom variants from vcf file
 
-        if (len( splits[ sample ][ 'HET']) > 0) and (len( splits[ sample ][ 'HOM']) > 0) :
-            mean_het = sum( splits[ sample ][ 'HET'])*1.0/len( splits[ sample ][ 'HET'] )
-            mean_hom = sum( splits[ sample ][ 'HOM'])*1.0/len( splits[ sample ][ 'HOM'] )
-            het_hom_ratio = len( splits[ sample ][ 'HET'] )*1.0/len( splits[ sample ][ 'HOM'] )
+    Parameters
+    ----------
+    vcf : str
+        filename of vcf to get counts from
 
-        # If no hets/homs to calculate ratios/scores, set values to -1000
+    Returns
+    -------
+    str
+        string of sample name parsed from vcf header
+    dict
+        dict of per variant AAF split by het and hom
+
+    Raises
+    ------
+    AssertionError
+        Raised when more than one sample present in vcf
+    """
+    vcf_handle = pysam.VariantFile(vcf)
+    samples = vcf_handle.header.samples
+
+    # ensure we don't get passed a multisample vcf and therefore we can
+    # just zero index sample fields from here on
+    assert len(samples) == 1, "more than one sample present in vcf"
+
+    sample = samples[0]
+    counts = {
+        'het': [],
+        'hom': [],
+        'x_het': [],
+        'x_hom': []
+    }
+
+    for record in vcf_handle.fetch():
+        sample_fields = record.samples[sample]
+
+        if not all(x in sample_fields for x in ['AD', 'DP', 'GT']):
+            # TODO - do we still want to do this? does this even happen?
+            print(f"Missing field(s)")
+            continue
+
+        # using the sum of all allele depths instead of the format AD
+        # field to be the informative read depths supporting each allele
+        informative_total_depth = sum(sample_fields['AD'])
+        non_ref_depth = sum(sample_fields['AD'][1:])
+
+        non_ref_aaf = round(non_ref_depth / informative_total_depth, 4)
+
+        print(
+            f"GT: {sample_fields['GT']}\tADs: {sample_fields['AD']}\t\t"
+            f"AD DP: {sum(sample_fields['AD'])}\tFMT_DP: {sample_fields['DP']}\tAAF: {non_ref_aaf}"
+        )
+
+
+        if len(set(sample_fields['GT'])) == 1:
+            # homozygous variant
+            counts['hom'].append(non_ref_aaf)
+
+            if re.match(r'(chr)?x', record.chrom, re.IGNORECASE):
+                counts['x_hom'].append(non_ref_aaf)
         else:
-            mean_het = -1000
-            mean_hom = -1000
-            het_hom_ratio = -1000
+            # heterozygous variant
+            counts['het'].append(non_ref_aaf)
 
-        if ( len(splits[ sample ][ 'X' ][ 'HOM']) == 0):
-            X_het_hom_ratio = -1000
-        else:
-            X_het_hom_ratio = len(splits[ sample ][ 'X' ][ 'HET'])*1.0/len(splits[ sample ][ 'X' ][ 'HOM'])
+            if re.match(r'(chr)?x', record.chrom, re.IGNORECASE):
+                counts['x_het'].append(non_ref_aaf)
 
-        if (X_het_hom_ratio > 1 ):
-            gender = "male"
-        else:
-            gender = "female"
+    return sample, counts
 
-        mean_het = "{:.4f}".format( mean_het )
-        mean_hom = "{:.4f}".format( mean_hom )
-        het_hom_ratio = "{:.4f}".format( het_hom_ratio )
-        X_het_hom_ratio = "{:.4f}".format( X_het_hom_ratio )
 
-        print( "\t".join( [ sample, mean_het, mean_hom, het_hom_ratio, X_het_hom_ratio, gender]))
+def calculate_ratios(counts) -> dict:
+    """
+    Calculate the het hom ratios from the given counts
 
-    
+    Parameters
+    ----------
+    counts : dict
+        dict of AAFs for het, hom, x_het and x_hom variants
+
+    Returns
+    -------
+    dict
+        dict containing calculated het hom ratios
+    """
+    if not counts['het'] and counts['hom']:
+        # we don't have both het and hom variants => TODO figure out what to do
+        return
+
+    ratios = {}
+
+    ratios['mean_het'] = sum(counts['het']) / len(counts['het'])
+    ratios['mean_hom'] = sum(counts['hom']) / len(counts['hom'])
+
+    ratios['het_hom_ratio'] = len(counts['het']) / len(counts['hom'])
+
+    ratios['x_het_hom_ratio'] = None
+
+    if counts['x_hom'] and counts['x_het']:
+        ratios['x_het_hom_ratio'] = len(counts['x_het']) / len(counts['x_hom'])
+
+    print(len(counts['het']))
+    print(len(counts['hom']))
+    print(len(counts['het']) / len(counts['hom']))
+
+    return ratios
+
+
+
+@dxpy.entry_point('main')
+def main(vcf_file, bed_file, outfile=None):
+
+    tmp_vcf = intersect_vcf_with_bed(vcf=vcf_file, bed=bed_file)
+    sample, het_hom_counts = get_het_hom_counts(tmp_vcf)
+    ratios = calculate_ratios(het_hom_counts)
+
+    for x, y in ratios.items():
+        print(x, "\t", y)
+
+
+if os.path.exists('/home/dnanexus'):
+    dxpy.run()
+
 if __name__ == "__main__":
-
-    parser = argparse.ArgumentParser(description='vcf_QC.py: simple QC of a vcf file ')
-
-    parser.add_argument('-o', '--outfile', help="if set writes to this file")
-    parser.add_argument('vcf_files', metavar='vcf-files', nargs="+",  help="vcf file(s) to analyse")
-    parser.add_argument('bed_file', metavar='bed-file', help="bed file containing regions to analyse")
-    
-    args = parser.parse_args()
-
-    if args.outfile:
-        sys.stdout = open("{}".format( args.outfile), 'w')
-
-    print "\t".join([ "Sample", "mean het ratio", "mean homo ratio", "het:homo ratio", "X homo:het ratio", "gender"])
-
-    for vcf_file in args.vcf_files:
-        analyse_vcf( vcf_file, args.bed_file )
-        
+    main(vcf_file=sys.argv[1], bed_file=sys.argv[2])
