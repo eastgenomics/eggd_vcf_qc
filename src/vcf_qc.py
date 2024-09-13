@@ -122,9 +122,9 @@ def get_het_hom_counts(vcf) -> dict:
 
         print(
             f"GT: {sample_fields['GT']}\tADs: {sample_fields['AD']}\t\t"
-            f"AD DP: {sum(sample_fields['AD'])}\tFMT_DP: {sample_fields['DP']}\tAAF: {non_ref_aaf}"
+            f"AD DP: {sum(sample_fields['AD'])}\tFMT_DP: {sample_fields['DP']}"
+            f"\tAAF: {non_ref_aaf}"
         )
-
 
         if len(set(sample_fields['GT'])) == 1:
             # homozygous variant
@@ -172,9 +172,10 @@ def calculate_ratios(counts) -> dict:
     if counts['x_hom'] and counts['x_het']:
         ratios['x_het_hom_ratio'] = len(counts['x_het']) / len(counts['x_hom'])
 
-    print(len(counts['het']))
-    print(len(counts['hom']))
-    print(len(counts['het']) / len(counts['hom']))
+    print(f"\nTotal het counts: {len(counts['het'])}")
+    print(f"Total hom counts: {len(counts['hom'])}")
+    print(f"Total x het counts: {len(counts['x_het'])}")
+    print(f"Total x hom counts: {len(counts['x_hom'])}\n")
 
     return ratios
 
