@@ -4,7 +4,8 @@
   "summary": "Simple QC of a vcf file. Includes deviation from expected allelic balance",
   "tags":["NGS QC"],
   "dxapi": "1.0.0",
-  "`inputSpec": [
+  "version": "2.0.0",
+  "inputSpec": [
     {
       "name": "vcf_file",
       "label": "Input VCF file",
