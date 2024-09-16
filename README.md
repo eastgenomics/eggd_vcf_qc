@@ -23,8 +23,5 @@ The app outputs one file, where [outPrefix] is the vcf filename without extensio
 ## How does this app work?
 The app runs a bash script which runs the python script which generated the output file. The output file is then uploaded to dnanexus.
 
-## What are the limitations of this app
-- Inferred gender is tuned to work with TSOE data and the TSOnePlus.bed. Use of other assays/bed files may result in incorrect inferred gender.
-- Inferred gender may generate incorrect results for biological reasons e.g. for patient's whose parents are closely related, or patients with sex chromosome anomolies (Turner, Klinefelter etc.)
 
 ## This app was made by EMEE GLH
