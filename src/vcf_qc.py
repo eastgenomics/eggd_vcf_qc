@@ -99,6 +99,8 @@ def get_het_hom_counts(vcf) -> dict:
             print(f"Missing field(s)")
             continue
 
+        # TODO - should we skip ref sites incase a gvcf is provided?
+
         # using the sum of all allele depths instead of the format AD
         # field to be the informative read depths supporting each allele
         informative_total_depth = sum(sample_fields['AD'])
@@ -111,6 +113,7 @@ def get_het_hom_counts(vcf) -> dict:
             counts['hom'].append(non_ref_aaf)
 
             if sample_fields['GQ'] < 10:
+                # TODO - remember to remove / make this better
                 counts['crap_homs'].append(sample_fields['GQ'])
 
             if re.match(r'(chr)?x', record.chrom, re.IGNORECASE):
