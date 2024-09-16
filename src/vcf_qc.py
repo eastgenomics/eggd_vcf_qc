@@ -66,8 +66,6 @@ def get_het_hom_counts(vcf) -> dict:
 
     Returns
     -------
-    str
-        string of sample name parsed from vcf header
     dict
         dict of per variant AAF split by het and hom
 
@@ -134,7 +132,7 @@ def get_het_hom_counts(vcf) -> dict:
             f"\tAAF: {non_ref_aaf}"
         )
 
-    return sample, counts
+    return counts
 
 
 def calculate_ratios(counts) -> dict:
@@ -182,13 +180,54 @@ def calculate_ratios(counts) -> dict:
     return ratios
 
 
+def write_output_file(outfile, ratios) -> None:
+    """
+    Write ratios to output file
+
+    Parameters
+    ----------
+    outfile : str
+        name of file to write to
+    ratios : dict
+        dict of field and calculated values to write
+    """
+    with open(outfile, 'w') as fh:
+        for k, v in ratios.items():
+            fh.write(f'{k}\t{v}')
+
+
+def upload_output_file(outfile) -> None:
+    """
+    Upload output file to project
+
+    Parameters
+    ----------
+    outfile : str
+        name of file to upload
+    """
+    url_file = dxpy.upload_local_file(
+        outfile,
+        folder=dxpy.bindings.dxjob.DXJob(
+            os.environ.get('DX_JOB_ID')).describe()['folder']
+    )
+
+    return {"output_file": dxpy.dxlink(url_file)}
+
 
 @dxpy.entry_point('main')
 def main(vcf_file, bed_file, outfile=None):
 
     tmp_vcf = intersect_vcf_with_bed(vcf=vcf_file, bed=bed_file)
-    sample, het_hom_counts = get_het_hom_counts(tmp_vcf)
+    het_hom_counts = get_het_hom_counts(tmp_vcf)
     ratios = calculate_ratios(het_hom_counts)
+
+    if not outfile:
+        outfile = f"{re.sub(r'.vcf(.gz)?$', '', vcf_file)}.vcf.qc"
+
+    write_output_file(outfile=outfile, ratios=ratios)
+    uploaded_file = upload_output_file(outfile=outfile)
+
+    return uploaded_file
 
 
 if os.path.exists('/home/dnanexus'):
