@@ -41,6 +41,7 @@
     },
     "interpreter": "python",
     "release": "20.04",
+    "version": "0",
     "distribution": "Ubuntu",
     "file": "src/vcf_qc.py",
     "assetDepends": [
