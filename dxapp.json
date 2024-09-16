@@ -19,7 +19,6 @@
       "help": "A bed file containing the regions to be evaluated in the vcf file",
       "class": "file",
       "optional": false,
-      "default":{"$dnanexus_link":{"project":"project-Fkb6Gkj433GVVvj73J7x8KbV", "id":"file-FkyGjY8433GXG33JF06B9pKP"}},
       "patterns": ["*.bed"]
     }
   ],
