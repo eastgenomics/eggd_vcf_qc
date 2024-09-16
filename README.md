@@ -15,10 +15,9 @@ The app outputs one file, where [outPrefix] is the vcf filename without extensio
 1. [outPrefix].vcf.QC is a tab delimited file containing:
  - sample id
  - mean het ratio (mean AAF of het variants)
- - mean homo ratio (mean AAF of hom variants)
- - het:homo ratio (ratio of het to hom variants on autosomes)
- - X homo:het ratio (ratio of het to hom variants on chrX)
- - gender (inferred from X homo:het ratio)
+ - mean hom ratio (mean AAF of hom variants)
+ - het:hom ratio (ratio of het to hom variants on autosomes)
+ - X het:hom ratio (ratio of het to hom variants on chrX)
 
 ## How does this app work?
 The app runs a bash script which runs the python script which generated the output file. The output file is then uploaded to dnanexus.
