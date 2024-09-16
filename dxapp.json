@@ -42,7 +42,7 @@
     "interpreter": "python",
     "release": "20.04",
     "distribution": "Ubuntu",
-    "file": "src/eggd_vcf_qc.py",
+    "file": "src/vcf_qc.py",
     "assetDepends": [
       {
         "name": "bedtools",
