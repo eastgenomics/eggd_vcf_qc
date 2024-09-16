@@ -41,7 +41,12 @@ def intersect_vcf_with_bed(vcf, bed) -> str:
         f"bedtools intersect -header -wa -u -a {vcf} -b {bed} > {vcf}.tmp"
     )
 
-    process = subprocess.run(command, shell=True, capture_output=True)
+    process = subprocess.run(
+        command,
+        shell=True,
+        check=True,
+        capture_output=True
+    )
 
     assert process.returncode == 0, (
         f"Error in calling bedtools intersect: {process.stderr.decode()}"
@@ -69,7 +74,7 @@ def get_het_hom_counts(vcf) -> dict:
     Raises
     ------
     AssertionError
-        Raised when more than one sample present in vcf
+        Raised if more than one sample present in vcf
     """
     vcf_handle = pysam.VariantFile(vcf)
     samples = vcf_handle.header.samples
@@ -83,7 +88,9 @@ def get_het_hom_counts(vcf) -> dict:
         'het': [],
         'hom': [],
         'x_het': [],
-        'x_hom': []
+        'x_hom': [],
+        'crap_homs': [],
+        'crap_hets': []
     }
 
     for record in vcf_handle.fetch():
@@ -105,11 +112,17 @@ def get_het_hom_counts(vcf) -> dict:
             # homozygous variant
             counts['hom'].append(non_ref_aaf)
 
+            if sample_fields['GQ'] < 10:
+                counts['crap_homs'].append(sample_fields['GQ'])
+
             if re.match(r'(chr)?x', record.chrom, re.IGNORECASE):
                 counts['x_hom'].append(non_ref_aaf)
         else:
             # heterozygous variant
             counts['het'].append(non_ref_aaf)
+
+            if sample_fields['GQ'] < 30:
+                counts['crap_hets'].append(sample_fields['GQ'])
 
             if re.match(r'(chr)?x', record.chrom, re.IGNORECASE):
                 counts['x_het'].append(non_ref_aaf)
@@ -154,10 +167,14 @@ def calculate_ratios(counts) -> dict:
     if counts['x_hom'] and counts['x_het']:
         ratios['x_het_hom_ratio'] = len(counts['x_het']) / len(counts['x_hom'])
 
-    print(f"\nTotal het counts: {len(counts['het'])}")
-    print(f"Total hom counts: {len(counts['hom'])}")
-    print(f"Total x het counts: {len(counts['x_het'])}")
-    print(f"Total x hom counts: {len(counts['x_hom'])}\n")
+    print(
+        f"\nTotal het counts: {len(counts['het'])}"
+        f"Total hom counts: {len(counts['hom'])}"
+        f"Total x het counts: {len(counts['x_het'])}"
+        f"Total x hom counts: {len(counts['x_hom'])}"
+        f"Crap homs: {len(counts['crap_homs'])}"
+        f"Crap hets: {len(counts['crap_hets'])}\n"
+    )
 
     for field, value in ratios.items():
         print(f"{field}\t{value}")
