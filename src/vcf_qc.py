@@ -82,13 +82,12 @@ def get_het_hom_counts(vcf) -> dict:
     assert len(samples) == 1, "more than one sample present in vcf"
 
     sample = samples[0]
+
     counts = {
         'het': [],
         'hom': [],
         'x_het': [],
-        'x_hom': [],
-        'crap_homs': [],
-        'crap_hets': []
+        'x_hom': []
     }
 
     for record in vcf_handle.fetch():
@@ -112,18 +111,11 @@ def get_het_hom_counts(vcf) -> dict:
             # homozygous variant
             counts['hom'].append(non_ref_aaf)
 
-            if sample_fields['GQ'] < 10:
-                # TODO - remember to remove / make this better
-                counts['crap_homs'].append(sample_fields['GQ'])
-
             if re.match(r'(chr)?x', record.chrom, re.IGNORECASE):
                 counts['x_hom'].append(non_ref_aaf)
         else:
             # heterozygous variant
             counts['het'].append(non_ref_aaf)
-
-            if sample_fields['GQ'] < 30:
-                counts['crap_hets'].append(sample_fields['GQ'])
 
             if re.match(r'(chr)?x', record.chrom, re.IGNORECASE):
                 counts['x_het'].append(non_ref_aaf)
@@ -158,23 +150,23 @@ def calculate_ratios(counts) -> dict:
 
     ratios = {}
 
-    ratios['mean_het'] = sum(counts['het']) / len(counts['het'])
-    ratios['mean_hom'] = sum(counts['hom']) / len(counts['hom'])
+    ratios['mean_het'] = f"{sum(counts['het']) / len(counts['het']):.4f}"
+    ratios['mean_hom'] = f"{sum(counts['hom']) / len(counts['hom']):.4f}"
 
-    ratios['het_hom_ratio'] = len(counts['het']) / len(counts['hom'])
+    ratios['het_hom_ratio'] = f"{len(counts['het']) / len(counts['hom']):.4f}"
 
     ratios['x_het_hom_ratio'] = None
 
     if counts['x_hom'] and counts['x_het']:
-        ratios['x_het_hom_ratio'] = len(counts['x_het']) / len(counts['x_hom'])
+        ratios['x_het_hom_ratio'] = (
+            f"{len(counts['x_het']) / len(counts['x_hom']):.4f}"
+        )
 
     print(
         f"\nTotal het counts: {len(counts['het'])}"
         f"Total hom counts: {len(counts['hom'])}"
         f"Total x het counts: {len(counts['x_het'])}"
-        f"Total x hom counts: {len(counts['x_hom'])}"
-        f"Crap homs: {len(counts['crap_homs'])}"
-        f"Crap hets: {len(counts['crap_hets'])}\n"
+        f"Total x hom counts: {len(counts['x_hom'])}\n"
     )
 
     for field, value in ratios.items():
@@ -221,19 +213,22 @@ def upload_output_file(outfile) -> None:
 def main(vcf_file, bed_file, outfile=None):
 
     tmp_vcf = intersect_vcf_with_bed(vcf=vcf_file, bed=bed_file)
+    tmp_vcf = vcf_file
     het_hom_counts = get_het_hom_counts(tmp_vcf)
     ratios = calculate_ratios(het_hom_counts)
 
     if not outfile:
         outfile = f"{re.sub(r'.vcf(.gz)?$', '', vcf_file)}.vcf.qc"
 
-    write_output_file(outfile=outfile, ratios=ratios)
-    uploaded_file = upload_output_file(outfile=outfile)
+    if os.path.exists('/home/dnanexus'):
+        write_output_file(outfile=outfile, ratios=ratios)
+        uploaded_file = upload_output_file(outfile=outfile)
 
-    return uploaded_file
+        return uploaded_file
 
 
 if os.path.exists('/home/dnanexus'):
     dxpy.run()
 else:
     main(vcf_file=sys.argv[1], bed_file=sys.argv[2])
+
