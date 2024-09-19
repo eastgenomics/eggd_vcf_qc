@@ -163,9 +163,9 @@ def calculate_ratios(counts) -> dict:
         )
 
     print(
-        f"\nTotal het counts: {len(counts['het'])}"
-        f"Total hom counts: {len(counts['hom'])}"
-        f"Total x het counts: {len(counts['x_het'])}"
+        f"\nTotal het counts: {len(counts['het'])}\n"
+        f"Total hom counts: {len(counts['hom'])}\n"
+        f"Total x het counts: {len(counts['x_het'])}\n"
         f"Total x hom counts: {len(counts['x_hom'])}\n"
     )
 
@@ -173,6 +173,29 @@ def calculate_ratios(counts) -> dict:
         print(f"{field}\t{value}")
 
     return ratios
+
+
+def download_input_file(remote_file) -> str:
+    """
+    Download given input file with same name as file in project
+
+    Parameters
+    ----------
+    remote_file : dict
+        DNAnexus input file
+
+    Returns
+    -------
+    str
+        name of locally downloaded file
+    """
+    local_name = dxpy.describe(remote_file).get('name')
+    dxpy.bindings.dxfile_functions.download_dxfile(
+        dxid=remote_file,
+        filename=local_name
+    )
+
+    return local_name
 
 
 def write_output_file(outfile, ratios) -> None:
@@ -212,13 +235,15 @@ def upload_output_file(outfile) -> None:
 @dxpy.entry_point('main')
 def main(vcf_file, bed_file, outfile=None):
 
-    tmp_vcf = intersect_vcf_with_bed(vcf=vcf_file, bed=bed_file)
-    tmp_vcf = vcf_file
+    local_vcf_file = download_input_file(vcf_file)
+    local_bed_file = download_input_file(bed_file)
+
+    tmp_vcf = intersect_vcf_with_bed(vcf=local_vcf_file, bed=local_bed_file)
     het_hom_counts = get_het_hom_counts(tmp_vcf)
     ratios = calculate_ratios(het_hom_counts)
 
     if not outfile:
-        outfile = f"{re.sub(r'.vcf(.gz)?$', '', vcf_file)}.vcf.qc"
+        outfile = f"{re.sub(r'.vcf(.gz)?$', '', local_vcf_file)}.vcf.qc"
 
     if os.path.exists('/home/dnanexus'):
         write_output_file(outfile=outfile, ratios=ratios)
