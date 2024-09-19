@@ -260,6 +260,6 @@ def main(vcf_file, bed_file, outfile=None):
 
 if os.path.exists('/home/dnanexus'):
     dxpy.run()
-else:
+elif __name__ == "__main__":
     main(vcf_file=sys.argv[1], bed_file=sys.argv[2])
 
