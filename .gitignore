@@ -1,6 +1,2 @@
-/**
-!/home/dnanexus/packages/*
-!/src/vcf_qc.py
-!/dxapp.json
-!/README.md
-!/.gitignore
+*.vcf*
+*.bed
