@@ -39,7 +39,7 @@
         "hours": 1
       }
     },
-    "interpreter": "python",
+    "interpreter": "python3",
     "release": "20.04",
     "version": "0",
     "distribution": "Ubuntu",
