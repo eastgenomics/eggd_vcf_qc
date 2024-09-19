@@ -99,6 +99,8 @@ def get_het_hom_counts(vcf) -> dict:
             continue
 
         # TODO - should we skip ref sites incase a gvcf is provided?
+        if sample_fields['GT'] == (0,0):
+            continue
 
         # using the sum of all allele depths instead of the format AD
         # field to be the informative read depths supporting each allele
@@ -210,8 +212,10 @@ def write_output_file(outfile, ratios) -> None:
         dict of field and calculated values to write
     """
     with open(outfile, 'w') as fh:
-        for k, v in ratios.items():
-            fh.write(f'{k}\t{v}')
+        header = '\t'.join(ratios.keys())
+        values = '\t'.join(ratios.values())
+
+        fh.write(f"{header}\n{values}\n")
 
 
 def upload_output_file(outfile) -> None:
