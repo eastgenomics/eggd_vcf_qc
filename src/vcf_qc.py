@@ -107,7 +107,7 @@ def get_het_hom_counts(vcf) -> dict:
         informative_total_depth = sum(sample_fields['AD'])
         non_ref_depth = sum(sample_fields['AD'][1:])
 
-        non_ref_aaf = round(non_ref_depth / informative_total_depth, 4)
+        non_ref_aaf = non_ref_depth / informative_total_depth
 
         if len(set(sample_fields['GT'])) == 1:
             # homozygous variant
@@ -129,6 +129,8 @@ def get_het_hom_counts(vcf) -> dict:
             f"\tAAF: {non_ref_aaf}"
         )
 
+    counts = {k: sorted(v) for k, v in counts.items()}
+
     return counts
 
 
@@ -146,18 +148,21 @@ def calculate_ratios(counts) -> dict:
     dict
         dict containing calculated het hom ratios
     """
-    if not counts['het'] and counts['hom']:
-        # we don't have both het and hom variants => TODO figure out what to do
-        return
+    ratios = {
+        'mean_het': None,
+        'mean_hom': None,
+        'het_hom_ratio': None,
+        'x_het_hom_ratio': None
+    }
 
-    ratios = {}
+    if not counts['het'] or not counts['hom']:
+        # we don't have both het and hom variants => TODO figure out what to do
+        return ratios
 
     ratios['mean_het'] = f"{sum(counts['het']) / len(counts['het']):.4f}"
     ratios['mean_hom'] = f"{sum(counts['hom']) / len(counts['hom']):.4f}"
 
     ratios['het_hom_ratio'] = f"{len(counts['het']) / len(counts['hom']):.4f}"
-
-    ratios['x_het_hom_ratio'] = None
 
     if counts['x_hom'] and counts['x_het']:
         ratios['x_het_hom_ratio'] = (
@@ -212,15 +217,16 @@ def write_output_file(outfile, ratios) -> None:
         dict of field and calculated values to write
     """
     with open(outfile, 'w') as fh:
+        print(ratios)
         header = '\t'.join(ratios.keys())
-        values = '\t'.join(ratios.values())
+        values = '\t'.join([str(x) for x in ratios.values()])
 
         fh.write(f"{header}\n{values}\n")
 
 
 def upload_output_file(outfile) -> None:
     """
-    Upload output file to project
+    Upload output file to set folder in current project
 
     Parameters
     ----------
@@ -230,9 +236,10 @@ def upload_output_file(outfile) -> None:
     print(f"Uploading {outfile}")
 
     url_file = dxpy.upload_local_file(
-        outfile,
+        filename=outfile,
         folder=dxpy.bindings.dxjob.DXJob(
-            os.environ.get('DX_JOB_ID')).describe()['folder']
+            os.environ.get('DX_JOB_ID')).describe()['folder'],
+        wait_on_close=True
     )
 
     return {"output_file": dxpy.dxlink(url_file)}
