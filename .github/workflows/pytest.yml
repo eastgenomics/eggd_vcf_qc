@@ -19,8 +19,9 @@ jobs:
     - name: Install bedtools
       run: |
         wget https://github.com/arq5x/bedtools2/releases/download/v2.31.0/bedtools.static
-        mv bedtools.static.binary /usr/bin/bedtools
+        mv bedtools.static /usr/bin/bedtools
         chmod a+x /usr/bin/bedtools
+        bedtools
     - name: Test with pytest
       run: |
         pytest -vv --cov .
