@@ -1,8 +1,8 @@
 <!-- dx-header -->
-# dnanexus_vcf_QC (DNAnexus Platform App)
+# eggd_vcf_qc (DNAnexus Platform App)
 
 ## What does this app do?
-This app runs a python script to perform simple vcf QC.
+This app runs a python script to calculate the mean het, mean hom and het:hom ratio of non reference variants in a given vcf.
 
 ## What are typical use cases for this app?
 This app should be executed stand-alone or as part of a DNAnexus workflow for a single sample.
@@ -11,16 +11,14 @@ This app should be executed stand-alone or as part of a DNAnexus workflow for a 
 The app requires a VCF file (.vcf) containing variants to be evaluated and a bed file defining the regions within which variants in the vcf should be evaluated.
 
 ## What does this app output?
-The app outputs one file, where [outPrefix] is the vcf filename without extension:
-1. [outPrefix].vcf.QC is a tab delimited file containing:
- - sample id
- - mean het ratio (mean AAF of het variants)
- - mean hom ratio (mean AAF of hom variants)
- - het:hom ratio (ratio of het to hom variants on autosomes)
- - X het:hom ratio (ratio of het to hom variants on chrX)
+The app outputs one tab delimited file `[vcf_prefix].vcf.qc`, where `vcf_prefix` is the vcf filename without extension:
 
-## How does this app work?
-The app runs a bash script which runs the python script which generated the output file. The output file is then uploaded to dnanexus.
+* sample id
+* mean het ratio (mean AAF of het variants)
+* mean hom ratio (mean AAF of hom variants)
+* het:hom ratio (ratio of het to hom variants on autosomes)
+* X het:hom ratio (ratio of het to hom variants on chrX)
 
 
 ## This app was made by EMEE GLH
+
