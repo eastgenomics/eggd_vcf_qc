@@ -227,6 +227,8 @@ def upload_output_file(outfile) -> None:
     outfile : str
         name of file to upload
     """
+    print(f"Uploading {outfile}")
+
     url_file = dxpy.upload_local_file(
         outfile,
         folder=dxpy.bindings.dxjob.DXJob(
