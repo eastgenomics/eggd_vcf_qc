@@ -16,6 +16,11 @@ jobs:
         pip install pipenv codecov pytest pytest-cov pytest-mock pytest-subtests
         pip install -r requirements.txt
         pipenv install --dev
+    - name: Install bedtools
+      run: |
+        wget https://github.com/arq5x/bedtools2/releases/download/v2.31.0/bedtools.static
+        mv bedtools.static.binary /usr/bin/bedtools
+        chmod a+x /usr/bin/bedtools
     - name: Test with pytest
       run: |
         pytest -vv --cov .
