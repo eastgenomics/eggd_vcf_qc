@@ -129,9 +129,7 @@ def get_het_hom_counts(vcf) -> dict:
             f"\tAAF: {non_ref_aaf}"
         )
 
-    counts = {k: sorted(v) for k, v in counts.items()}
-
-    return counts
+    return {k: sorted(v) for k, v in counts.items()}
 
 
 def calculate_ratios(counts) -> dict:
@@ -217,7 +215,6 @@ def write_output_file(outfile, ratios) -> None:
         dict of field and calculated values to write
     """
     with open(outfile, 'w') as fh:
-        print(ratios)
         header = '\t'.join(ratios.keys())
         values = '\t'.join([str(x) for x in ratios.values()])
 
