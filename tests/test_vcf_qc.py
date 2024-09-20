@@ -51,6 +51,29 @@ class TestIntersectVcfWithBed(unittest.TestCase):
             )
 
 
+class TestIsAutosome(unittest.TestCase):
+    def test_autosomes_correctly_return_true(self):
+        autosomes = [
+            '1', 'chr1', '2', 'chr2', '3', 'chr3', '4', 'chr4', '5', 'chr5',
+            '6', 'chr6', '7', 'chr7', '8', 'chr8', '9', 'chr9', '10', 'chr10',
+            '11', 'chr11', '12', 'chr12', '13', 'chr13', '14', 'chr14', '15',
+            'chr15', '16', 'chr16', '17', 'chr17', '18', 'chr18', '19',
+            'chr19', '20', 'chr20', '21', 'chr21', '22', 'chr22'
+        ]
+
+        for chrom in autosomes:
+            with self.subTest('automsomes return True'):
+                assert vcf_qc.is_autosome(chrom)
+
+
+    def test_non_autosomes_correctly_return_false(self):
+        non_autosomes = ['X', 'chrX', 'Y', 'chrY', 'GL000192.1']
+
+        for chrom in non_autosomes:
+            with self.subTest('automsomes return True'):
+                assert not vcf_qc.is_autosome(chrom)
+
+
 class TestGetHetHomCounts(unittest.TestCase):
     """
     Tests for calculating the AAF of all het and hom variants in the vcf.
@@ -112,8 +135,8 @@ class TestGetHetHomCounts(unittest.TestCase):
         )
 
         expected_values = {
-            'het': [0.45454545454545453, 0.4952076677316294, 0.6, 0.8],
-            'hom': [1.0, 1.0, 1.0, 1.0],
+            'het': [0.45454545454545453, 0.4952076677316294],
+            'hom': [1.0, 1.0],
             'x_het': [0.6, 0.8],
             'x_hom': [1.0, 1.0]
         }
