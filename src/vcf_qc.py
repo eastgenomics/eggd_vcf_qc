@@ -68,7 +68,7 @@ def is_autosome(chrom) -> bool:
     """
     # build single list both with and without prefix
     autosomes = [
-        x for y in [(str(x), f"chr{x}") for x in range(1, 23)] for x in y
+        i for j in [(str(i), f"chr{i}") for x in range(1, 23)] for i in j
     ]
 
     return str(chrom) in autosomes
