@@ -119,7 +119,6 @@ def get_het_hom_counts(vcf) -> dict:
             print(f"Missing field(s)")
             continue
 
-        # TODO - should we skip ref sites incase a gvcf is provided?
         if sample_fields['GT'] == (0,0):
             continue
 
@@ -178,6 +177,7 @@ def calculate_ratios(counts) -> dict:
 
     if not counts['het'] or not counts['hom']:
         # we don't have both het and hom variants => TODO figure out what to do
+        # assume this is an empty vcf, and we'd just want to output something still?
         return ratios
 
     ratios['mean_het'] = f"{sum(counts['het']) / len(counts['het']):.4f}"
