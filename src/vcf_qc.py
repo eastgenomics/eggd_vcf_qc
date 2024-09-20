@@ -146,7 +146,8 @@ def get_het_hom_counts(vcf) -> dict:
 
         # handy print for the logs for sense checking
         print(
-            f"GT: {sample_fields['GT']}\tADs: {sample_fields['AD']}\t\t"
+            f"{record.chrom}-{record.pos}-{record.ref}-{','.join(record.alts)}"
+            f"\tGT: {sample_fields['GT']}\tADs: {sample_fields['AD']}\t\t"
             f"AD DP: {sum(sample_fields['AD'])}\tFMT_DP: {sample_fields['DP']}"
             f"\tAAF: {non_ref_aaf}"
         )
@@ -268,8 +269,11 @@ def upload_output_file(outfile) -> None:
 @dxpy.entry_point('main')
 def main(vcf_file, bed_file):
 
-    local_vcf_file = download_input_file(vcf_file)
-    local_bed_file = download_input_file(bed_file)
+    # local_vcf_file = download_input_file(vcf_file)
+    # local_bed_file = download_input_file(bed_file)
+
+    local_vcf_file = vcf_file
+    local_bed_file = bed_file
 
     tmp_vcf = intersect_vcf_with_bed(vcf=local_vcf_file, bed=local_bed_file)
     het_hom_counts = get_het_hom_counts(tmp_vcf)
