@@ -4,11 +4,11 @@ import re
 import subprocess
 import sys
 
-if os.path.exists('/home/dnanexus'):
+if os.path.exists("/home/dnanexus"):
     # running in DNAnexus
-    subprocess.check_call([
-        'pip', 'install', "--no-index", "--no-deps"
-    ] + glob("packages/*"))
+    subprocess.check_call(
+        ["pip", "install", "--no-index", "--no-deps"] + glob("packages/*")
+    )
 
 import dxpy
 import pysam
@@ -42,15 +42,12 @@ def intersect_vcf_with_bed(vcf, bed) -> str:
     )
 
     process = subprocess.run(
-        command,
-        shell=True,
-        check=True,
-        capture_output=True
+        command, shell=True, check=True, capture_output=True
     )
 
-    assert process.returncode == 0, (
-        f"Error in calling bedtools intersect: {process.stderr.decode()}"
-    )
+    assert (
+        process.returncode == 0
+    ), f"Error in calling bedtools intersect: {process.stderr.decode()}"
 
     return tmp_vcf
 
@@ -105,53 +102,48 @@ def get_het_hom_counts(vcf) -> dict:
 
     sample = samples[0]
 
-    counts = {
-        'het': [],
-        'hom': [],
-        'x_het': [],
-        'x_hom': []
-    }
+    counts = {"het": [], "hom": [], "x_het": [], "x_hom": []}
 
     variants = autosomes = x_variants = 0
 
     for record in vcf_handle.fetch():
         sample_fields = record.samples[sample]
 
-        if not all(x in sample_fields for x in ['AD', 'DP', 'GT']):
+        if not all(x in sample_fields for x in ["AD", "DP", "GT"]):
             # TODO - do we still want to do this? does this even happen?
             print(f"Missing field(s)")
             continue
 
-        if sample_fields['GT'] == (0, 0):
+        if sample_fields["GT"] == (0, 0):
             continue
 
         variants += 1
 
         # using the sum of all allele depths instead of the format AD
         # field to be the informative read depths supporting each allele
-        informative_total_depth = sum(sample_fields['AD'])
-        non_ref_depth = sum(sample_fields['AD'][1:])
+        informative_total_depth = sum(sample_fields["AD"])
+        non_ref_depth = sum(sample_fields["AD"][1:])
 
         non_ref_aaf = non_ref_depth / informative_total_depth
 
-        if len(set(sample_fields['GT'])) == 1:
+        if len(set(sample_fields["GT"])) == 1:
             # homozygous variant
             if is_autosome(record.chrom):
                 autosomes += 1
-                counts['hom'].append(non_ref_aaf)
+                counts["hom"].append(non_ref_aaf)
 
-            if re.match(r'(chr)?x', record.chrom, re.IGNORECASE):
+            if re.match(r"(chr)?x", record.chrom, re.IGNORECASE):
                 x_variants += 1
-                counts['x_hom'].append(non_ref_aaf)
+                counts["x_hom"].append(non_ref_aaf)
         else:
             # heterozygous variant
             if is_autosome(record.chrom):
                 autosomes += 1
-                counts['het'].append(non_ref_aaf)
+                counts["het"].append(non_ref_aaf)
 
-            if re.match(r'(chr)?x', record.chrom, re.IGNORECASE):
+            if re.match(r"(chr)?x", record.chrom, re.IGNORECASE):
                 x_variants += 1
-                counts['x_het'].append(non_ref_aaf)
+                counts["x_het"].append(non_ref_aaf)
 
         # handy print for the logs for sense checking
         print(
@@ -184,24 +176,24 @@ def calculate_ratios(counts) -> dict:
         dict containing calculated het hom ratios
     """
     ratios = {
-        'mean_het': None,
-        'mean_hom': None,
-        'het_hom_ratio': None,
-        'x_het_hom_ratio': None
+        "mean_het": None,
+        "mean_hom": None,
+        "het_hom_ratio": None,
+        "x_het_hom_ratio": None,
     }
 
-    if not counts['het'] or not counts['hom']:
+    if not counts["het"] or not counts["hom"]:
         # we don't have both het and hom variants => TODO figure out what to do
         # assume this is an empty vcf, and we'd just want to output something still?
         return ratios
 
-    ratios['mean_het'] = f"{sum(counts['het']) / len(counts['het']):.4f}"
-    ratios['mean_hom'] = f"{sum(counts['hom']) / len(counts['hom']):.4f}"
+    ratios["mean_het"] = f"{sum(counts['het']) / len(counts['het']):.4f}"
+    ratios["mean_hom"] = f"{sum(counts['hom']) / len(counts['hom']):.4f}"
 
-    ratios['het_hom_ratio'] = f"{len(counts['het']) / len(counts['hom']):.4f}"
+    ratios["het_hom_ratio"] = f"{len(counts['het']) / len(counts['hom']):.4f}"
 
-    if counts['x_hom'] and counts['x_het']:
-        ratios['x_het_hom_ratio'] = (
+    if counts["x_hom"] and counts["x_het"]:
+        ratios["x_het_hom_ratio"] = (
             f"{len(counts['x_het']) / len(counts['x_hom']):.4f}"
         )
 
@@ -232,10 +224,9 @@ def download_input_file(remote_file) -> str:
     str
         name of locally downloaded file
     """
-    local_name = dxpy.describe(remote_file).get('name')
+    local_name = dxpy.describe(remote_file).get("name")
     dxpy.bindings.dxfile_functions.download_dxfile(
-        dxid=remote_file,
-        filename=local_name
+        dxid=remote_file, filename=local_name
     )
 
     return local_name
@@ -252,9 +243,9 @@ def write_output_file(outfile, ratios) -> None:
     ratios : dict
         dict of field and calculated values to write
     """
-    with open(outfile, 'w') as fh:
-        header = '\t'.join(ratios.keys())
-        values = '\t'.join([str(x) for x in ratios.values()])
+    with open(outfile, "w") as fh:
+        header = "\t".join(ratios.keys())
+        values = "\t".join([str(x) for x in ratios.values()])
 
         fh.write(f"{header}\n{values}\n")
 
@@ -273,17 +264,18 @@ def upload_output_file(outfile) -> None:
     url_file = dxpy.upload_local_file(
         filename=outfile,
         folder=dxpy.bindings.dxjob.DXJob(
-            os.environ.get('DX_JOB_ID')).describe()['folder'],
-        wait_on_close=True
+            os.environ.get("DX_JOB_ID")
+        ).describe()["folder"],
+        wait_on_close=True,
     )
 
     return {"output_file": dxpy.dxlink(url_file)}
 
 
-@dxpy.entry_point('main')
+@dxpy.entry_point("main")
 def main(vcf_file, bed_file):
 
-    if os.path.exists('/home/dnanexus'):
+    if os.path.exists("/home/dnanexus"):
         vcf_file = download_input_file(vcf_file)
         bed_file = download_input_file(bed_file)
 
@@ -293,14 +285,14 @@ def main(vcf_file, bed_file):
 
     outfile = f"{re.sub(r'.vcf(.gz)?$', '', vcf_file)}.vcf.qc"
 
-    if os.path.exists('/home/dnanexus'):
+    if os.path.exists("/home/dnanexus"):
         write_output_file(outfile=outfile, ratios=ratios)
         uploaded_file = upload_output_file(outfile=outfile)
 
         return uploaded_file
 
 
-if os.path.exists('/home/dnanexus'):
+if os.path.exists("/home/dnanexus"):
     dxpy.run()
 elif __name__ == "__main__":
     main(vcf_file=sys.argv[1], bed_file=sys.argv[2])
