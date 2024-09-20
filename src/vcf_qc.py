@@ -104,7 +104,7 @@ def get_het_hom_counts(vcf) -> dict:
 
     counts = {"het": [], "hom": [], "x_het": [], "x_hom": []}
 
-    variants = autosomes = x_variants = 0
+    variant_count = autosome_count = x_variant_count = 0
 
     for record in vcf_handle.fetch():
         sample_fields = record.samples[sample]
@@ -127,7 +127,7 @@ def get_het_hom_counts(vcf) -> dict:
         if sample_fields["GT"] == (0, 0):
             continue
 
-        variants += 1
+        variant_count += 1
 
         # using the sum of all allele depths instead of the format AD
         # field to be the informative read depths supporting each allele
@@ -139,20 +139,20 @@ def get_het_hom_counts(vcf) -> dict:
         if len(set(sample_fields["GT"])) == 1:
             # homozygous variant
             if is_autosome(record.chrom):
-                autosomes += 1
+                autosome_count += 1
                 counts["hom"].append(non_ref_aaf)
 
             if re.match(r"(chr)?x", record.chrom, re.IGNORECASE):
-                x_variants += 1
+                x_variant_count += 1
                 counts["x_hom"].append(non_ref_aaf)
         else:
             # heterozygous variant
             if is_autosome(record.chrom):
-                autosomes += 1
+                autosome_count += 1
                 counts["het"].append(non_ref_aaf)
 
             if re.match(r"(chr)?x", record.chrom, re.IGNORECASE):
-                x_variants += 1
+                x_variant_count += 1
                 counts["x_het"].append(non_ref_aaf)
 
         # handy print for the logs for sense checking
@@ -163,8 +163,8 @@ def get_het_hom_counts(vcf) -> dict:
         )
 
     print(
-        f"\nTotal variants: {variants}\nTotal autosome variants: {autosomes}\n"
-        f"Total X variants: {x_variants}\n"
+        f"\nTotal variants: {variant_count}\nTotal autosome variants: "
+        f"{autosome_count}\nTotal X variants: {x_variant_count}\n"
     )
 
     return {k: sorted(v) for k, v in counts.items()}
