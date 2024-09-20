@@ -269,17 +269,15 @@ def upload_output_file(outfile) -> None:
 @dxpy.entry_point('main')
 def main(vcf_file, bed_file):
 
-    # local_vcf_file = download_input_file(vcf_file)
-    # local_bed_file = download_input_file(bed_file)
+    if os.path.exists('/home/dnanexus'):
+        vcf_file = download_input_file(vcf_file)
+        bed_file = download_input_file(bed_file)
 
-    local_vcf_file = vcf_file
-    local_bed_file = bed_file
-
-    tmp_vcf = intersect_vcf_with_bed(vcf=local_vcf_file, bed=local_bed_file)
+    tmp_vcf = intersect_vcf_with_bed(vcf=vcf_file, bed=bed_file)
     het_hom_counts = get_het_hom_counts(tmp_vcf)
     ratios = calculate_ratios(het_hom_counts)
 
-    outfile = f"{re.sub(r'.vcf(.gz)?$', '', local_vcf_file)}.vcf.qc"
+    outfile = f"{re.sub(r'.vcf(.gz)?$', '', vcf_file)}.vcf.qc"
 
     if os.path.exists('/home/dnanexus'):
         write_output_file(outfile=outfile, ratios=ratios)
