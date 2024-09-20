@@ -124,6 +124,11 @@ class TestGetHetHomCounts(unittest.TestCase):
     DP to ensure non informative reads do not contribute to the depth.
     """
 
+    @pytest.fixture(autouse=True)
+    def capsys(self, capsys):
+        """Capture stdout to provide it to tests"""
+        self.capsys = capsys
+
     def test_aaf_calculated_correctly_for_hets_and_homs(self):
         """
         Test using our minimal `test.vcf` with 2 hets and 2 homs that
@@ -217,6 +222,34 @@ class TestGetHetHomCounts(unittest.TestCase):
             calculated_values = vcf_qc.get_het_hom_counts(
                 os.path.join(TEST_DATA_DIR, "multi_sample.vcf")
             )
+
+    def test_variants_with_missing_fields_skipped(self):
+        """
+        Variants with any GT, AD or DP should be skipped, test using
+        vcf with a variant with missing fields are skipped
+        """
+        expected_warning = (
+            "WARNING - One or more required fields are not present: ['AD']. "
+            "Variant 1-11119899-T-C will be skipped."
+        )
+
+        expected_values = {
+            "het": [],
+            "hom": [],
+            "alt_het": [],
+            "x_het": [],
+            "x_hom": [],
+        }
+
+        calculated_values = vcf_qc.get_het_hom_counts(
+            os.path.join(TEST_DATA_DIR, "missing_fields.vcf")
+        )
+
+        with self.subTest("printed warning"):
+            assert expected_warning in self.capsys.readouterr().out
+
+        with self.subTest("returned counts correct"):
+            assert expected_values == calculated_values
 
 
 class TestCalculateRatios(unittest.TestCase):
