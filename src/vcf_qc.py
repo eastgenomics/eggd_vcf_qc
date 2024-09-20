@@ -68,7 +68,7 @@ def is_autosome(chrom) -> bool:
     """
     # build single list both with and without prefix
     autosomes = [
-        i for j in [(str(i), f"chr{i}") for x in range(1, 23)] for i in j
+        i for j in [(str(i), f"chr{i}") for i in range(1, 23)] for i in j
     ]
 
     return str(chrom) in autosomes
@@ -109,9 +109,19 @@ def get_het_hom_counts(vcf) -> dict:
     for record in vcf_handle.fetch():
         sample_fields = record.samples[sample]
 
-        if not all(x in sample_fields for x in ["AD", "DP", "GT"]):
-            # TODO - do we still want to do this? does this even happen?
-            print(f"Missing field(s)")
+        printable_var = (
+            f"{record.chrom}-{record.pos}-{record.ref}-{','.join(record.alts)}"
+        )
+
+        missing_fields = [
+            x for x in ["AD", "DP", "GT"] if not x in sample_fields
+        ]
+
+        if missing_fields:
+            print(
+                f"WARNING - One or more required fields are not present: "
+                f"{missing_fields}. Variant {printable_var} will be skipped."
+            )
             continue
 
         if sample_fields["GT"] == (0, 0):
@@ -147,10 +157,9 @@ def get_het_hom_counts(vcf) -> dict:
 
         # handy print for the logs for sense checking
         print(
-            f"{record.chrom}-{record.pos}-{record.ref}-{','.join(record.alts)}"
-            f"\tGT: {sample_fields['GT']}\tADs: {sample_fields['AD']}\t\t"
-            f"AD DP: {sum(sample_fields['AD'])}\tFMT_DP: {sample_fields['DP']}"
-            f"\tAAF: {non_ref_aaf}"
+            f"{printable_var}\tGT: {sample_fields['GT']}\tADs: "
+            f"{sample_fields['AD']}\t\tAD DP: {sum(sample_fields['AD'])}\t"
+            f"FMT_DP: {sample_fields['DP']}\tAAF: {non_ref_aaf}"
         )
 
     print(
