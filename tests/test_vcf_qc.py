@@ -32,6 +32,7 @@ class TestIntersectVcfWithBed(unittest.TestCase):
             ["1", "11119899", "rs7545802", "T", "C"],
             ["1", "17380497", "rs2746462", "G", "T"],
             ["1", "18807536", "rs7512414", "G", "T"],
+            ["1", "18993885", ".", "A", "AAAGG,AAAGGAAGGAAGG"],
         ]
 
         os.remove(tmp_vcf)
@@ -134,6 +135,7 @@ class TestGetHetHomCounts(unittest.TestCase):
             (1, 1) (0, 1367)    1367        1.0
             (0, 1) (158, 155)   313         0.4952076677316294
             (0, 1) (60, 50)     110         0.45454545454545453
+            (1, 2) (0, 15, 6)   21          1.0
 
         """
         calculated_values = vcf_qc.get_het_hom_counts(
@@ -143,7 +145,7 @@ class TestGetHetHomCounts(unittest.TestCase):
         expected_values = {
             "het": [0.45454545454545453, 0.4952076677316294],
             "hom": [1.0, 1.0],
-            "alt_het": [],
+            "alt_het": [1.0],
             "x_het": [],
             "x_hom": [],
         }
@@ -162,6 +164,7 @@ class TestGetHetHomCounts(unittest.TestCase):
             (1, 1) (0, 1367)    1367        1.0
             (0, 1) (158, 155)   313         0.4952076677316294
             (0, 1) (60, 50)     110         0.45454545454545453
+            (1, 2) (0, 15, 6)   21          1.0
 
         Expected chromsome X variants
             GT      ADs         total AD    expected AAF
