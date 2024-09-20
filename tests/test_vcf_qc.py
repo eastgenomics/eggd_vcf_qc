@@ -39,7 +39,9 @@ class TestIntersectVcfWithBed(unittest.TestCase):
             self.assertEqual(expected_variants, intersected_variants)
 
     @patch("src.vcf_qc.subprocess.run", wraps=vcf_qc.subprocess.run)
-    def test_non_zero_exit_code_from_bedtools_raises_assertion_error(self, mock_run):
+    def test_non_zero_exit_code_from_bedtools_raises_assertion_error(
+        self, mock_run
+    ):
 
         mock_run.return_value.returncode = 1
 
@@ -282,7 +284,8 @@ class TestDownloadInputFile(unittest.TestCase):
         vcf_qc.download_input_file("file-xxx")
 
         self.assertEqual(
-            mock_download.call_args[1], {"dxid": "file-xxx", "filename": "sample1.vcf"}
+            mock_download.call_args[1],
+            {"dxid": "file-xxx", "filename": "sample1.vcf"},
         )
 
 
@@ -314,7 +317,9 @@ class TestWriteOutputFile(unittest.TestCase):
 @patch("src.vcf_qc.dxpy.bindings.dxjob.DXJob")
 class TestUploadOutputFile(unittest.TestCase):
     def test_upload_params_correct(self, mock_job, mock_upload):
-        mock_job.return_value.describe.return_value = {"folder": "/output/sub_folder"}
+        mock_job.return_value.describe.return_value = {
+            "folder": "/output/sub_folder"
+        }
 
         vcf_qc.upload_output_file("test.vcf.qc")
 
@@ -333,3 +338,118 @@ class TestUploadOutputFile(unittest.TestCase):
             vcf_qc.upload_output_file("test.vcf.qc"),
             {"output_file": {"$dnanexus_link": "file-xxx"}},
         )
+
+
+class TestMain(unittest.TestCase):
+    def setUp(self):
+        self.test_vcf = os.path.join(TEST_DATA_DIR, "test.vcf")
+        self.test_bed = os.path.join(TEST_DATA_DIR, "test.bed")
+        # functions we want to mock but not actually call
+        self.mock_download_input_file = patch(
+            "src.vcf_qc.download_input_file",
+            side_effect=[
+                self.test_vcf,
+                self.test_bed,
+            ],
+        ).start()
+
+        self.mock_write_output_file = patch(
+            "src.vcf_qc.write_output_file"
+        ).start()
+
+        self.mock_upload_output_file = patch(
+            "src.vcf_qc.upload_output_file"
+        ).start()
+
+        # functions we want to mock but still call so we can test
+        # call behaviour (i.e. call args, call count etc)
+        self.mock_intersect = patch(
+            "src.vcf_qc.intersect_vcf_with_bed",
+            wraps=vcf_qc.intersect_vcf_with_bed,
+        ).start()
+
+        self.mock_get_het_hom_counts = patch(
+            "src.vcf_qc.get_het_hom_counts", wraps=vcf_qc.get_het_hom_counts
+        ).start()
+
+        self.mock_calculate_ratios = patch(
+            "src.vcf_qc.calculate_ratios", wraps=vcf_qc.calculate_ratios
+        ).start()
+
+    def tearDown(self):
+        patch.stopall()
+
+    def test_functions_called_as_expected(self):
+        """
+        Test that the core non-conditional functions to intersect, get
+        counts and calculate ratios are called as expected
+        """
+        vcf_qc.main(
+            vcf_file=self.test_vcf,
+            bed_file=self.test_bed,
+        )
+
+        with self.subTest("intersect_bed called correctly"):
+            self.mock_intersect.assert_called_once_with(
+                vcf=self.test_vcf, bed=self.test_bed
+            )
+
+        with self.subTest("get_het_hom_counts called correctly"):
+            expected_tmp_vcf = f"{self.test_vcf}.tmp"
+
+            self.mock_get_het_hom_counts.assert_called_once_with(
+                vcf=expected_tmp_vcf
+            )
+
+        with self.subTest("calculate_ratios called correctly"):
+            self.mock_calculate_ratios.assert_called_once()
+
+    def test_running_locally_that_dnanexus_functions_are_not_called(self):
+        """
+        When we're running locally it should not call any of the
+        download / upload functions
+        """
+        vcf_qc.main(
+            vcf_file=self.test_vcf,
+            bed_file=self.test_bed,
+        )
+
+        with self.subTest("download_input_file not called"):
+            self.mock_download_input_file.assert_not_called()
+
+        with self.subTest("write_output_file not called"):
+            self.mock_write_output_file.assert_not_called()
+
+        with self.subTest("upload_output_file not called"):
+            self.mock_upload_output_file.assert_not_called()
+
+    @patch("src.vcf_qc.os.path.exists", return_value=True)
+    def test_running_in_dnanexus_calls_download_upload_functions(
+        self, mock_exists
+    ):
+        """
+        Running in DNAnexus determined from presence of /home/dnanexus
+        path, in which we will call functions for downloading and
+        uploading files
+        """
+        vcf_qc.main(
+            vcf_file=self.test_vcf,
+            bed_file=self.test_bed,
+        )
+
+        with self.subTest("download_input_file_called"):
+            assert self.mock_download_input_file.call_count == 2
+
+        with self.subTest("write_output_file called"):
+            self.mock_write_output_file.assert_called_once()
+
+        with self.subTest("outfile name correct"):
+            output_file = f"{self.test_vcf}.qc"
+
+            assert (
+                output_file
+                in self.mock_write_output_file.call_args[1].values()
+            )
+
+        with self.subTest("upload_output_file called"):
+            self.mock_upload_output_file.assert_called_once()
