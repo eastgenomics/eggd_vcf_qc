@@ -69,6 +69,7 @@ def is_autosome(chrom) -> bool:
     bool
         True if variant on autosome else False
     """
+    # build single list both with and without prefix
     autosomes = [
         x for y in [(str(x), f"chr{x}") for x in range(1, 23)] for x in y
     ]
