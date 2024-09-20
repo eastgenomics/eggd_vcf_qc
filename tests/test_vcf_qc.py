@@ -143,6 +143,7 @@ class TestGetHetHomCounts(unittest.TestCase):
         expected_values = {
             "het": [0.45454545454545453, 0.4952076677316294],
             "hom": [1.0, 1.0],
+            "alt_het": [],
             "x_het": [],
             "x_hom": [],
         }
@@ -176,6 +177,7 @@ class TestGetHetHomCounts(unittest.TestCase):
         expected_values = {
             "het": [0.45454545454545453, 0.4952076677316294],
             "hom": [1.0, 1.0],
+            "alt_het": [],
             "x_het": [0.6, 0.8],
             "x_hom": [1.0, 1.0],
         }
@@ -195,7 +197,13 @@ class TestGetHetHomCounts(unittest.TestCase):
             os.path.join(TEST_DATA_DIR, "test_w_ref.vcf")
         )
 
-        expected_values = {"het": [], "hom": [], "x_het": [], "x_hom": []}
+        expected_values = {
+            "het": [],
+            "hom": [],
+            "alt_het": [],
+            "x_het": [],
+            "x_hom": [],
+        }
 
         self.assertEqual(calculated_values, expected_values)
 
@@ -221,6 +229,7 @@ class TestCalculateRatios(unittest.TestCase):
         counts = {
             "het": [0.5, 0.45, 0.55],
             "hom": [1.0, 1.0, 1.0, 1.0, 0.95],
+            "alt_het": [],
             "x_het": [],
             "x_hom": [],
         }
@@ -240,6 +249,7 @@ class TestCalculateRatios(unittest.TestCase):
         counts = {
             "het": [0.5, 0.45, 0.55],
             "hom": [1.0, 1.0, 1.0, 1.0, 0.95],
+            "alt_het": [],
             "x_het": [0.45, 0.55],
             "x_hom": [1.0, 0.98],
         }

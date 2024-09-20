@@ -102,9 +102,11 @@ def get_het_hom_counts(vcf) -> dict:
 
     sample = samples[0]
 
-    counts = {"het": [], "hom": [], "x_het": [], "x_hom": []}
+    counts = {"het": [], "hom": [], "alt_het": [], "x_het": [], "x_hom": []}
 
     variant_count = autosome_count = x_variant_count = 0
+
+    gts = []
 
     for record in vcf_handle.fetch():
         sample_fields = record.samples[sample]
@@ -112,6 +114,8 @@ def get_het_hom_counts(vcf) -> dict:
         printable_var = (
             f"{record.chrom}-{record.pos}-{record.ref}-{','.join(record.alts)}"
         )
+
+        gts.append(sample_fields["GT"])
 
         missing_fields = [
             x for x in ["AD", "DP", "GT"] if not x in sample_fields
@@ -136,7 +140,7 @@ def get_het_hom_counts(vcf) -> dict:
 
         non_ref_aaf = non_ref_depth / informative_total_depth
 
-        if len(set(sample_fields["GT"])) == 1:
+        if sample_fields["GT"] == (1, 1):
             # homozygous variant
             if is_autosome(record.chrom):
                 autosome_count += 1
@@ -145,8 +149,8 @@ def get_het_hom_counts(vcf) -> dict:
             if re.match(r"(chr)?x", record.chrom, re.IGNORECASE):
                 x_variant_count += 1
                 counts["x_hom"].append(non_ref_aaf)
-        else:
-            # heterozygous variant
+        elif sample_fields["GT"] == (0, 1):
+            # standard ref alt heterozygous variant
             if is_autosome(record.chrom):
                 autosome_count += 1
                 counts["het"].append(non_ref_aaf)
@@ -154,6 +158,10 @@ def get_het_hom_counts(vcf) -> dict:
             if re.match(r"(chr)?x", record.chrom, re.IGNORECASE):
                 x_variant_count += 1
                 counts["x_het"].append(non_ref_aaf)
+        else:
+            # heterozygous alternate variant
+            if is_autosome(record.chrom):
+                counts["alt_het"].append(non_ref_aaf)
 
         # handy print for the logs for sense checking
         print(
@@ -209,6 +217,7 @@ def calculate_ratios(counts) -> dict:
     print(
         f"\nTotal het counts: {len(counts['het'])}\n"
         f"Total hom counts: {len(counts['hom'])}\n"
+        f"Total alt het counts: {len(counts['alt_het'])}\n"
         f"Total x het counts: {len(counts['x_het'])}\n"
         f"Total x hom counts: {len(counts['x_hom'])}\n"
     )
