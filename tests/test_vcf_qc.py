@@ -1,3 +1,4 @@
+from glob import glob
 import os
 import unittest
 from unittest.mock import patch
@@ -344,6 +345,7 @@ class TestMain(unittest.TestCase):
     def setUp(self):
         self.test_vcf = os.path.join(TEST_DATA_DIR, "test.vcf")
         self.test_bed = os.path.join(TEST_DATA_DIR, "test.bed")
+
         # functions we want to mock but not actually call
         self.mock_download_input_file = patch(
             "src.vcf_qc.download_input_file",
@@ -378,6 +380,9 @@ class TestMain(unittest.TestCase):
 
     def tearDown(self):
         patch.stopall()
+
+        for tmp_file in glob(os.path.join(TEST_DATA_DIR, "*.tmp")):
+            os.remove(tmp_file)
 
     def test_functions_called_as_expected(self):
         """
@@ -453,3 +458,35 @@ class TestMain(unittest.TestCase):
 
         with self.subTest("upload_output_file called"):
             self.mock_upload_output_file.assert_called_once()
+
+    @patch("src.vcf_qc.os.path.exists", return_value=True)
+    def test_empty_vcf_still_outputs_file_with_no_ratios(self, mock_exists):
+        """
+        Test that if we pass an empty vcf into the app that it won't fail
+        and will just output empty ratios.
+
+        We can test this by checking what is passed to be written to the
+        output file
+        """
+        # patch back over the download with our empty vcf
+        self.mock_download_input_file.side_effect = [
+            os.path.join(TEST_DATA_DIR, "empty.vcf"),
+            self.test_bed,
+        ]
+
+        vcf_qc.main(
+            vcf_file=os.path.join(TEST_DATA_DIR, "empty.vcf"),
+            bed_file=self.test_bed,
+        )
+
+        expected_ratios = {
+            "mean_het": None,
+            "mean_hom": None,
+            "het_hom_ratio": None,
+            "x_het_hom_ratio": None,
+        }
+
+        assert (
+            self.mock_write_output_file.call_args[1]["ratios"]
+            == expected_ratios
+        )
