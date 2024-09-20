@@ -119,7 +119,7 @@ def get_het_hom_counts(vcf) -> dict:
             print(f"Missing field(s)")
             continue
 
-        if sample_fields['GT'] == (0,0):
+        if sample_fields['GT'] == (0, 0):
             continue
 
         # using the sum of all allele depths instead of the format AD

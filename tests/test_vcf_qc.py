@@ -187,7 +187,7 @@ class TestCalculateRatios(unittest.TestCase):
         variants
         """
         counts = {
-            'het': [ 0.5, 0.45, 0.55],
+            'het': [0.5, 0.45, 0.55],
             'hom': [1.0, 1.0, 1.0, 1.0, 0.95],
             'x_het': [],
             'x_hom': []
@@ -207,7 +207,7 @@ class TestCalculateRatios(unittest.TestCase):
 
     def test_x_het_hom_calculated_correctly(self):
         counts = {
-            'het': [ 0.5, 0.45, 0.55],
+            'het': [0.5, 0.45, 0.55],
             'hom': [1.0, 1.0, 1.0, 1.0, 0.95],
             'x_het': [0.45, 0.55],
             'x_hom': [1.0, 0.98]
@@ -313,4 +313,3 @@ class TestUploadOutputFile(unittest.TestCase):
             vcf_qc.upload_output_file('test.vcf.qc'),
             {'output_file': {'$dnanexus_link': 'file-xxx'}}
         )
-
