@@ -30,7 +30,7 @@
       "patterns": [
         "*"
       ],
-      "help": "A tab delimited vcf.QC file"
+      "help": "A tab delimited vcf.qc file"
     }
   ],
   "runSpec": {
