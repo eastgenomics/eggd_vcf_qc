@@ -2,7 +2,7 @@
 # eggd_vcf_qc (DNAnexus Platform App)
 
 ## What does this app do?
-This app runs a python script to calculate the mean het, mean hom and het:hom ratio of non reference variants in a given vcf.
+This app runs a python script to calculate the mean het, mean hom and het:hom ratio of non reference variants in a given vcf. Alternate heterozygous variants (i.e. those with a genotype of `1/2` are not included in the mean het or het:hom ratios).
 
 ## What are typical use cases for this app?
 This app should be executed stand-alone or as part of a DNAnexus workflow for a single sample.
