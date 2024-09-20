@@ -55,6 +55,27 @@ def intersect_vcf_with_bed(vcf, bed) -> str:
     return tmp_vcf
 
 
+def is_autosome(chrom) -> bool:
+    """
+    Determines if a variant is on an autosome
+
+    Parameters
+    ----------
+    chrom : str
+        chromosome of variant
+
+    Returns
+    -------
+    bool
+        True if variant on autosome else False
+    """
+    autosomes = [
+        x for y in [(str(x), f"chr{x}") for x in range(1, 23)] for x in y
+    ]
+
+    return str(chrom) in autosomes
+
+
 def get_het_hom_counts(vcf) -> dict:
     """
     Get the AD counts for het and hom variants from vcf file
@@ -111,13 +132,15 @@ def get_het_hom_counts(vcf) -> dict:
 
         if len(set(sample_fields['GT'])) == 1:
             # homozygous variant
-            counts['hom'].append(non_ref_aaf)
+            if is_autosome(record.chrom):
+                counts['hom'].append(non_ref_aaf)
 
             if re.match(r'(chr)?x', record.chrom, re.IGNORECASE):
                 counts['x_hom'].append(non_ref_aaf)
         else:
             # heterozygous variant
-            counts['het'].append(non_ref_aaf)
+            if is_autosome(record.chrom):
+                counts['het'].append(non_ref_aaf)
 
             if re.match(r'(chr)?x', record.chrom, re.IGNORECASE):
                 counts['x_het'].append(non_ref_aaf)
