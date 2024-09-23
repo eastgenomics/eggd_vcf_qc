@@ -106,16 +106,12 @@ def get_het_hom_counts(vcf) -> dict:
 
     variant_count = autosome_count = x_variant_count = 0
 
-    gts = []
-
     for record in vcf_handle.fetch():
         sample_fields = record.samples[sample]
 
         printable_var = (
             f"{record.chrom}-{record.pos}-{record.ref}-{','.join(record.alts)}"
         )
-
-        gts.append(sample_fields["GT"])
 
         missing_fields = [
             x for x in ["AD", "DP", "GT"] if not x in sample_fields
