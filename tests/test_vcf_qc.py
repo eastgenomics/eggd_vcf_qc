@@ -160,7 +160,7 @@ class TestGetHetHomCounts(unittest.TestCase):
     def test_x_chrom_variants_additionally_returned_separate(self):
         """
         Test that X chromosome variants are correctly returned in a
-        separate keys but also contribute towards normal het hom
+        separate keys and do not contribute towards normal het hom
         counts
 
         Expected chromosome 1 variant values:
@@ -219,14 +219,14 @@ class TestGetHetHomCounts(unittest.TestCase):
 
         match = "more than one sample present in vcf"
         with pytest.raises(AssertionError, match=match):
-            calculated_values = vcf_qc.get_het_hom_counts(
+            vcf_qc.get_het_hom_counts(
                 os.path.join(TEST_DATA_DIR, "multi_sample.vcf")
             )
 
     def test_variants_with_missing_fields_skipped(self):
         """
-        Variants with any GT, AD or DP should be skipped, test using
-        vcf with a variant with missing fields are skipped
+        Variants with any missing GT, AD or DP should be skipped, test
+        using vcf with a variant with missing fields is skipped
         """
         expected_warning = (
             "WARNING - One or more required fields are not present: ['AD']. "
@@ -323,7 +323,6 @@ class TestCalculateRatios(unittest.TestCase):
 @patch("src.vcf_qc.dxpy.describe", return_value={"name": "sample1.vcf"})
 @patch("src.vcf_qc.dxpy.bindings.dxfile_functions.download_dxfile")
 class TestDownloadInputFile(unittest.TestCase):
-
     def test_remote_filename_returned(self, mock_download, mock_describe):
         self.assertEqual(vcf_qc.download_input_file("file-xxx"), "sample1.vcf")
 
