@@ -11,7 +11,7 @@ This app should be executed stand-alone or as part of a DNAnexus workflow for a 
 The app requires a VCF file (.vcf) containing variants to be evaluated and a bed file defining the regions within which variants in the vcf should be evaluated.
 
 ## What does this app output?
-The app outputs one tab delimited file `[vcf_prefix].vcf.qc`, where `vcf_prefix` is the vcf filename without extension:
+The app outputs one tab delimited file `[vcf_prefix].vcf.QC`, where `vcf_prefix` is the vcf filename without extension:
 
 * sample id
 * mean het ratio (mean AAF of het variants)
