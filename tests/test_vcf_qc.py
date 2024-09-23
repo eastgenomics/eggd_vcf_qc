@@ -345,9 +345,9 @@ class TestWriteOutputFile(unittest.TestCase):
             "x_het_hom_ratio": None,
         }
 
-        vcf_qc.write_output_file(outfile="test.vcf.qc", ratios=ratios)
+        vcf_qc.write_output_file(outfile="test.vcf.QC", ratios=ratios)
 
-        with open("test.vcf.qc", "r") as fh:
+        with open("test.vcf.QC", "r") as fh:
             written_contents = fh.readlines()
 
         expected_contents = [
@@ -355,7 +355,7 @@ class TestWriteOutputFile(unittest.TestCase):
             "0.5000\t0.9900\t0.6000\tNone\n",
         ]
 
-        os.remove("test.vcf.qc")
+        os.remove("test.vcf.QC")
 
         self.assertEqual(written_contents, expected_contents)
 
@@ -368,10 +368,10 @@ class TestUploadOutputFile(unittest.TestCase):
             "folder": "/output/sub_folder"
         }
 
-        vcf_qc.upload_output_file("test.vcf.qc")
+        vcf_qc.upload_output_file("test.vcf.QC")
 
         expected_args = {
-            "filename": "test.vcf.qc",
+            "filename": "test.vcf.QC",
             "folder": "/output/sub_folder",
             "wait_on_close": True,
         }
@@ -382,7 +382,7 @@ class TestUploadOutputFile(unittest.TestCase):
         mock_upload.return_value = "file-xxx"
 
         self.assertEqual(
-            vcf_qc.upload_output_file("test.vcf.qc"),
+            vcf_qc.upload_output_file("test.vcf.QC"),
             {"output_file": {"$dnanexus_link": "file-xxx"}},
         )
 
@@ -495,7 +495,7 @@ class TestMain(unittest.TestCase):
             self.mock_write_output_file.assert_called_once()
 
         with self.subTest("outfile name correct"):
-            output_file = f"{self.test_vcf}.qc"
+            output_file = f"{self.test_vcf}.QC"
 
             assert (
                 output_file
