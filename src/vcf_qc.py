@@ -300,7 +300,7 @@ def main(vcf_file, bed_file):
     het_hom_counts = get_het_hom_counts(vcf=tmp_vcf)
     ratios = calculate_ratios(counts=het_hom_counts)
 
-    outfile = f"{re.sub(r'.vcf(.gz)?$', '', vcf_file)}.vcf.qc"
+    outfile = f"{re.sub(r'.vcf(.gz)?$', '', vcf_file)}.vcf.QC"
 
     if os.path.exists("/home/dnanexus"):
         write_output_file(outfile=outfile, ratios=ratios)
