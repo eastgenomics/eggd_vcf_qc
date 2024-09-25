@@ -372,9 +372,10 @@ class TestWriteOutputFile(unittest.TestCase):
 
 
 @patch("src.vcf_qc.dxpy.upload_local_file")
+@patch("src.vcf_qc.dxpy.api.project_new_folder")
 @patch("src.vcf_qc.dxpy.bindings.dxjob.DXJob")
 class TestUploadOutputFile(unittest.TestCase):
-    def test_upload_params_correct(self, mock_job, mock_upload):
+    def test_upload_params_correct(self, mock_job, mock_folder, mock_upload):
         mock_job.return_value.describe.return_value = {
             "folder": "/output/sub_folder"
         }
@@ -389,7 +390,9 @@ class TestUploadOutputFile(unittest.TestCase):
 
         self.assertEqual(mock_upload.call_args[1], expected_args)
 
-    def test_expected_dxlink_format_returned(self, mock_job, mock_upload):
+    def test_expected_dxlink_format_returned(
+        self, mock_job, mock_folder, mock_upload
+    ):
         mock_upload.return_value = "file-xxx"
 
         self.assertEqual(

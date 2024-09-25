@@ -281,13 +281,22 @@ def upload_output_file(outfile) -> None:
     outfile : str
         name of file to upload
     """
-    print(f"\nUploading {outfile}")
+    output_project = os.environ.get("DX_PROJECT_CONTEXT_ID")
+    output_folder = (
+        dxpy.bindings.dxjob.DXJob(os.environ.get("DX_JOB_ID"))
+        .describe()
+        .get("folder", "/")
+    )
+    print(f"\nUploading {outfile} to {output_project}:{output_folder}")
+
+    dxpy.set_workspace_id(output_project)
+    dxpy.api.project_new_folder(
+        output_project, input_params={"folder": output_folder, "parents": True}
+    )
 
     url_file = dxpy.upload_local_file(
         filename=outfile,
-        folder=dxpy.bindings.dxjob.DXJob(
-            os.environ.get("DX_JOB_ID")
-        ).describe()["folder"],
+        folder=output_folder,
         wait_on_close=True,
     )
 
