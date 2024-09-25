@@ -127,14 +127,22 @@ def get_het_hom_counts(vcf) -> dict:
         if sample_fields["GT"] == (0, 0):
             continue
 
-        variant_count += 1
-
         # using the sum of all allele depths instead of the format AD
         # field to be the informative read depths supporting each allele
         informative_total_depth = sum(sample_fields["AD"])
         non_ref_depth = sum(sample_fields["AD"][1:])
 
+        if informative_total_depth == 0 or non_ref_depth == 0:
+            # skip any variants with zero AD
+            print(
+                "WARNING - Variant has total and / or non ref AD of zero.\n"
+                f"Variant {printable_var} will be skipped."
+            )
+            continue
+
         non_ref_aaf = non_ref_depth / informative_total_depth
+
+        variant_count += 1
 
         if sample_fields["GT"] == (1, 1):
             # homozygous variant
