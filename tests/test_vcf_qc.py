@@ -33,6 +33,7 @@ class TestIntersectVcfWithBed(unittest.TestCase):
             ["1", "17380497", "rs2746462", "G", "T"],
             ["1", "18807536", "rs7512414", "G", "T"],
             ["1", "18993885", ".", "A", "AAAGG,AAAGGAAGGAAGG"],
+            ["1", "19999999", ".", "A", "AA,TATATATA"],
         ]
 
         os.remove(tmp_vcf)
@@ -250,6 +251,17 @@ class TestGetHetHomCounts(unittest.TestCase):
 
         with self.subTest("returned counts correct"):
             assert expected_values == calculated_values
+
+    def test_variants_with_zero_allele_depth_are_correctly_skipped(self):
+        expected_warning = (
+            "WARNING - Variant has total and / or non ref AD of zero.\n"
+            "Variant 1-19999999-A-AA,TATATATA will be skipped."
+        )
+
+        vcf_qc.get_het_hom_counts(os.path.join(TEST_DATA_DIR, "test.vcf"))
+
+        with self.subTest("printed warning"):
+            assert expected_warning in self.capsys.readouterr().out
 
 
 class TestCalculateRatios(unittest.TestCase):
