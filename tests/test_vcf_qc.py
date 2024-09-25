@@ -33,6 +33,7 @@ class TestIntersectVcfWithBed(unittest.TestCase):
             ["1", "17380497", "rs2746462", "G", "T"],
             ["1", "18807536", "rs7512414", "G", "T"],
             ["1", "18993885", ".", "A", "AAAGG,AAAGGAAGGAAGG"],
+            ["1", "19999999", ".", "A", "AA,TATATATA"],
         ]
 
         os.remove(tmp_vcf)
@@ -251,6 +252,17 @@ class TestGetHetHomCounts(unittest.TestCase):
         with self.subTest("returned counts correct"):
             assert expected_values == calculated_values
 
+    def test_variants_with_zero_allele_depth_are_correctly_skipped(self):
+        expected_warning = (
+            "WARNING - Variant has total and / or non ref AD of zero.\n"
+            "Variant 1-19999999-A-AA,TATATATA will be skipped."
+        )
+
+        vcf_qc.get_het_hom_counts(os.path.join(TEST_DATA_DIR, "test.vcf"))
+
+        with self.subTest("printed warning"):
+            assert expected_warning in self.capsys.readouterr().out
+
 
 class TestCalculateRatios(unittest.TestCase):
 
@@ -456,7 +468,7 @@ class TestMain(unittest.TestCase):
 
     def test_running_locally_that_dnanexus_functions_are_not_called(self):
         """
-        When we're running locally it should not call any of the
+        When we"re running locally it should not call any of the
         download / upload functions
         """
         vcf_qc.main(
@@ -507,7 +519,7 @@ class TestMain(unittest.TestCase):
     @patch("src.vcf_qc.os.path.exists", return_value=True)
     def test_empty_vcf_still_outputs_file_with_no_ratios(self, mock_exists):
         """
-        Test that if we pass an empty vcf into the app that it won't fail
+        Test that if we pass an empty vcf into the app that it won"t fail
         and will just output empty ratios.
 
         We can test this by checking what is passed to be written to the
