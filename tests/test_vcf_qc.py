@@ -468,7 +468,7 @@ class TestMain(unittest.TestCase):
 
     def test_running_locally_that_dnanexus_functions_are_not_called(self):
         """
-        When we"re running locally it should not call any of the
+        When we're running locally it should not call any of the
         download / upload functions
         """
         vcf_qc.main(
@@ -519,7 +519,7 @@ class TestMain(unittest.TestCase):
     @patch("src.vcf_qc.os.path.exists", return_value=True)
     def test_empty_vcf_still_outputs_file_with_no_ratios(self, mock_exists):
         """
-        Test that if we pass an empty vcf into the app that it won"t fail
+        Test that if we pass an empty vcf into the app that it won't fail
         and will just output empty ratios.
 
         We can test this by checking what is passed to be written to the
