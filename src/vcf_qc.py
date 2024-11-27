@@ -45,10 +45,13 @@ def intersect_vcf_with_bed(vcf, bed) -> str:
         process = subprocess.run(
             command, shell=True, check=True, capture_output=True
         )
-    except subprocess.CalledProcessError as e:
-        raise AssertionError(
-            f"Error in calling bedtools intersect: {e.stderr.decode()}"
-        )
+    except subprocess.CalledProcessError as err:
+        raise subprocess.CalledProcessError(
+            returncode=err.returncode,
+            cmd=err.cmd,
+            output=err.output,
+            stderr=f"Error in calling bedtools intersect: {err.stderr.decode()}"
+        ) from err
 
     return tmp_vcf
 

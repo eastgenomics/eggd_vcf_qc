@@ -51,7 +51,7 @@ class TestIntersectVcfWithBed(unittest.TestCase):
             returncode=1, cmd="bedtools intersect", stderr=b"Error message"
         )
 
-        with pytest.raises(AssertionError):
+        with pytest.raises(subprocess.CalledProcessError):
             vcf_qc.intersect_vcf_with_bed(
                 vcf=os.path.join(TEST_DATA_DIR, "test.vcf"),
                 bed=os.path.join(TEST_DATA_DIR, "test.bed"),
