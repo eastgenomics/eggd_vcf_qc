@@ -41,13 +41,17 @@ def intersect_vcf_with_bed(vcf, bed) -> str:
         f"bedtools intersect -header -wa -u -a {vcf} -b {bed} > {vcf}.tmp"
     )
 
-    process = subprocess.run(
-        command, shell=True, check=True, capture_output=True
-    )
-
-    assert (
-        process.returncode == 0
-    ), f"Error in calling bedtools intersect: {process.stderr.decode()}"
+    try:
+        process = subprocess.run(
+            command, shell=True, check=True, capture_output=True
+        )
+    except subprocess.CalledProcessError as err:
+        raise subprocess.CalledProcessError(
+            returncode=err.returncode,
+            cmd=err.cmd,
+            output=err.output,
+            stderr=f"Error in calling bedtools intersect: {err.stderr.decode()}"
+        ) from err
 
     return tmp_vcf
 
@@ -265,9 +269,13 @@ def write_output_file(outfile, ratios) -> None:
     ratios : dict
         dict of field and calculated values to write
     """
+    sample_name = os.path.basename(outfile).replace(
+        '.vcf.QC', ''
+    ).split("_")[0]
+
     with open(outfile, "w") as fh:
-        header = "\t".join(ratios.keys())
-        values = "\t".join([str(x) for x in ratios.values()])
+        header = "\t".join(["Sample"] + list(ratios.keys()))
+        values = "\t".join([sample_name] + [str(x) for x in ratios.values()])
 
         fh.write(f"{header}\n{values}\n")
 

@@ -4,6 +4,7 @@ import unittest
 from unittest.mock import patch
 
 import pytest
+import subprocess
 
 from src import vcf_qc
 from tests import TEST_DATA_DIR
@@ -46,9 +47,11 @@ class TestIntersectVcfWithBed(unittest.TestCase):
         self, mock_run
     ):
 
-        mock_run.return_value.returncode = 1
+        mock_run.side_effect = subprocess.CalledProcessError(
+            returncode=1, cmd="bedtools intersect", stderr=b"Error message"
+        )
 
-        with pytest.raises(AssertionError):
+        with pytest.raises(subprocess.CalledProcessError):
             vcf_qc.intersect_vcf_with_bed(
                 vcf=os.path.join(TEST_DATA_DIR, "test.vcf"),
                 bed=os.path.join(TEST_DATA_DIR, "test.bed"),
@@ -362,8 +365,8 @@ class TestWriteOutputFile(unittest.TestCase):
             written_contents = fh.readlines()
 
         expected_contents = [
-            "mean_het\tmean_hom\thet_hom_ratio\tx_het_hom_ratio\n",
-            "0.5000\t0.9900\t0.6000\tNone\n",
+            "Sample\tmean_het\tmean_hom\thet_hom_ratio\tx_het_hom_ratio\n",
+            "test\t0.5000\t0.9900\t0.6000\tNone\n",
         ]
 
         os.remove("test.vcf.QC")
