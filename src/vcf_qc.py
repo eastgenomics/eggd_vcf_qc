@@ -265,9 +265,11 @@ def write_output_file(outfile, ratios) -> None:
     ratios : dict
         dict of field and calculated values to write
     """
+    sample_name = os.path.basename(outfile).split("_")[0]
+
     with open(outfile, "w") as fh:
-        header = "\t".join(ratios.keys())
-        values = "\t".join([str(x) for x in ratios.values()])
+        header = "\t".join(["Sample"] + list(ratios.keys()))
+        values = "\t".join([sample_name] + [str(x) for x in ratios.values()])
 
         fh.write(f"{header}\n{values}\n")
 
