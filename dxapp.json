@@ -4,7 +4,7 @@
   "summary": "Simple QC of a vcf file. Includes deviation from expected allelic balance",
   "tags":["NGS QC"],
   "dxapi": "1.0.0",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "inputSpec": [
     {
       "name": "vcf_file",
@@ -63,6 +63,9 @@
   "authorizedUsers": [
       "org-emee_1"
   ],
+  "details": {
+    "whatsNew": "* v2.0.1 Sample column added back to output TSV"
+  },
   "regionalOptions": {
     "aws:eu-central-1": {
       "systemRequirements": {
