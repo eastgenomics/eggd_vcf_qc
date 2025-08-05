@@ -4,7 +4,12 @@
   "summary": "Simple QC of a vcf file. Includes deviation from expected allelic balance",
   "tags":["NGS QC"],
   "dxapi": "1.0.0",
-  "version": "2.0.1",
+  "version": "2.1.0",
+  "whatsNew": {
+    "v2.0.1": "Sample column added back to output TSV",
+    "v2.1.0": "Return 0 instead of None when no het/hom; upgrade to Ubuntu 24.04"
+
+  },
   "inputSpec": [
     {
       "name": "vcf_file",
@@ -40,7 +45,7 @@
       }
     },
     "interpreter": "python3",
-    "release": "20.04",
+    "release": "24.04",
     "version": "0",
     "distribution": "Ubuntu",
     "file": "src/vcf_qc.py",
@@ -63,9 +68,6 @@
   "authorizedUsers": [
       "org-emee_1"
   ],
-  "details": {
-    "whatsNew": "* v2.0.1 Sample column added back to output TSV"
-  },
   "regionalOptions": {
     "aws:eu-central-1": {
       "systemRequirements": {

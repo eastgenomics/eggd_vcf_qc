@@ -289,7 +289,7 @@ class TestCalculateRatios(unittest.TestCase):
             "mean_het": "0.5000",
             "mean_hom": "0.9900",
             "het_hom_ratio": "0.6000",
-            "x_het_hom_ratio": None,
+            "x_het_hom_ratio": 0,
         }
 
         calculated_ratios = vcf_qc.calculate_ratios(counts)
@@ -309,12 +309,12 @@ class TestCalculateRatios(unittest.TestCase):
 
         self.assertEqual(calculated_ratios["x_het_hom_ratio"], "1.0000")
 
-    def test_none_values_returned_if_missing_het_or_hom_counts(self):
+    def test_zero_values_returned_if_missing_het_or_hom_counts(self):
         empty_ratios = {
-            "mean_het": None,
-            "mean_hom": None,
-            "het_hom_ratio": None,
-            "x_het_hom_ratio": None,
+            "mean_het": 0,
+            "mean_hom": 0,
+            "het_hom_ratio": 0,
+            "x_het_hom_ratio": 0,
         }
 
         with self.subTest("missing het"):
@@ -543,10 +543,10 @@ class TestMain(unittest.TestCase):
         )
 
         expected_ratios = {
-            "mean_het": None,
-            "mean_hom": None,
-            "het_hom_ratio": None,
-            "x_het_hom_ratio": None,
+            "mean_het": 0,
+            "mean_hom": 0,
+            "het_hom_ratio": 0,
+            "x_het_hom_ratio": 0,
         }
 
         assert (
