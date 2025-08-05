@@ -201,10 +201,10 @@ def calculate_ratios(counts) -> dict:
         dict containing calculated het hom ratios
     """
     ratios = {
-        "mean_het": None,
-        "mean_hom": None,
-        "het_hom_ratio": None,
-        "x_het_hom_ratio": None,
+        "mean_het": 0,
+        "mean_hom": 0,
+        "het_hom_ratio": 0,
+        "x_het_hom_ratio": 0,
     }
 
     if not counts["het"] or not counts["hom"]:
