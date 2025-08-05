@@ -7,7 +7,7 @@
   "version": "2.1.0",
   "whatsNew": {
     "v2.0.1": "Sample column added back to output TSV",
-    "v2.1.0": "Return 0 instead of None when no het/hom"
+    "v2.1.0": "Return 0 instead of None when no het/hom; upgrade to Ubuntu 24.04"
 
   },
   "inputSpec": [
@@ -45,7 +45,7 @@
       }
     },
     "interpreter": "python3",
-    "release": "20.04",
+    "release": "24.04",
     "version": "0",
     "distribution": "Ubuntu",
     "file": "src/vcf_qc.py",
